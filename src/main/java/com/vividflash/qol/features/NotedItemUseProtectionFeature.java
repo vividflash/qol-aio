@@ -129,8 +129,11 @@ public class NotedItemUseProtectionFeature implements Feature
     public void startUp()
     {
         reload();
-        log.debug("[config] noted enabled={} geBooths={} tables={} customNames={}",
-            enabled, geBoothsEnabled, tablesEnabled, customNames.size());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[config] noted enabled={} geBooths={} tables={} customNames={}",
+                enabled, geBoothsEnabled, tablesEnabled, customNames.size());
+        }
         eventBus.register(this);
     }
 

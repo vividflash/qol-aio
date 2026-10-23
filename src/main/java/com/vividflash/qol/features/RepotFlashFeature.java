@@ -372,6 +372,8 @@ public class RepotFlashFeature implements Feature
     private void loadInventory(ItemContainer inventory)
     {
         inventoryLoaded = true;
+        int previousCount = carriedCount;
+        int previousMatches = carriedMatchAll;
         carriedCount = 0;
         carriedMatchAll = 0;
         if (inventory == null)
@@ -395,7 +397,7 @@ public class RepotFlashFeature implements Feature
             carriedCount++;
             carriedMatchAll |= matches;
         }
-        if (carriedCount > 0)
+        if (carriedCount != previousCount || carriedMatchAll != previousMatches)
         {
             log.debug("[repot] inventory scanned: {} distinct repot targets, matchBits={}",
                 carriedCount, carriedMatchAll);

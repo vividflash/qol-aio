@@ -138,7 +138,7 @@ public class QuestIngredientProtectionFeature implements Feature
     @Subscribe
     public void onClientTick(ClientTick tick)
     {
-        if (!enabled)
+        if (!enabled || (inventoryLoaded && !questFoodCarried))
         {
             return;
         }

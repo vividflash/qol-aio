@@ -83,8 +83,11 @@ public class TakeBeforeAttackFeature implements Feature
     public void startUp()
     {
         reload();
-        log.debug("[takefirst] [config] enabled={} monsters={} monsterExcludes={} itemExcludes={}",
-            enabled, monsterPatterns.size(), monsterExcludePatterns.size(), itemExcludePatterns.size());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[takefirst] [config] enabled={} monsters={} monsterExcludes={} itemExcludes={}",
+                enabled, monsterPatterns.size(), monsterExcludePatterns.size(), itemExcludePatterns.size());
+        }
         eventBus.register(this);
     }
 
@@ -243,7 +246,10 @@ public class TakeBeforeAttackFeature implements Feature
         monsterPatterns = MenuText.globList(config.takeBeforeAttackMonsters());
         monsterExcludePatterns = MenuText.globList(config.takeBeforeAttackMonstersExclude());
         itemExcludePatterns = MenuText.globList(config.takeBeforeAttackItemExclude());
-        log.debug("[takefirst] lists loaded monsters={} monsterExcludes={} itemExcludes={}",
-            monsterPatterns.size(), monsterExcludePatterns.size(), itemExcludePatterns.size());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[takefirst] lists loaded monsters={} monsterExcludes={} itemExcludes={}",
+                monsterPatterns.size(), monsterExcludePatterns.size(), itemExcludePatterns.size());
+        }
     }
 }

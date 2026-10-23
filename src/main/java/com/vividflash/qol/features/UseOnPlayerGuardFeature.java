@@ -104,7 +104,8 @@ public class UseOnPlayerGuardFeature implements Feature
     @Subscribe
     public void onClientTick(ClientTick tick)
     {
-        if (!enabled)
+        // Use-on entries only exist while something is selected.
+        if (!enabled || !client.isWidgetSelected())
         {
             return;
         }
@@ -159,10 +160,6 @@ public class UseOnPlayerGuardFeature implements Feature
      */
     private int selectedInventoryItemId()
     {
-        if (!client.isWidgetSelected())
-        {
-            return -1;
-        }
         Widget selected = client.getSelectedWidget();
         if (selected == null || selected.getId() != InterfaceID.Inventory.ITEMS)
         {

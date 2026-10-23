@@ -140,7 +140,8 @@ sections, and each feature has its own toggle.
 - **Require fishing tool**: removes `Small Net`, `Big Net`, `Bait`, `Lure`,
   `Rod`, `Fish`, `Cage` and `Harpoon` on fishing spots when the matching tool
   (net, big net, fishing rod or oily fishing rod, fly fishing rod, barbarian
-  rod, karambwan vessel, lobster pot, harpoon) is not carried or equipped.
+  rod, karambwan vessel, lobster pot, harpoon; the pearl rods count as their
+  plain versions) is not carried or equipped.
   Default on.
 - **Allow bare-handed harpooning**: with **Require fishing tool** on, once
   you're levelled for Barbarian Training, `Harpoon` survives without a harpoon
@@ -176,7 +177,8 @@ sections, and each feature has its own toggle.
   wheel while the preform's temperature is outside the band the current
   crafting stage needs. Heating and quenching stay clickable. Default on.
 - **Giants' Foundry overwork guard**: blocks the next click on a station once
-  its bonus window has opened and closed. Default on.
+  its bonus window has opened and closed, until a new bonus window opens or
+  you heat or cool the preform. Default on.
 - **Block world-hop near impling**: blocks world switcher hops while an
   impling from **Impling types to guard** is in the loaded scene. Default on.
 - **Impling types to guard**: comma-separated names with `*` wildcards.

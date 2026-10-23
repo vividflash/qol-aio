@@ -64,6 +64,12 @@ final class MenuText
      */
     static List<Pattern> globList(String csv)
     {
+        return globList(csv, 0);
+    }
+
+    /** {@link #globList(String)} with extra {@link Pattern} flags, e.g. CASE_INSENSITIVE. */
+    static List<Pattern> globList(String csv, int flags)
+    {
         List<Pattern> patterns = new ArrayList<>();
         if (csv == null)
         {
@@ -74,14 +80,14 @@ final class MenuText
             String trimmed = entry.trim();
             if (!trimmed.isEmpty())
             {
-                patterns.add(glob(trimmed));
+                patterns.add(glob(trimmed, flags));
             }
         }
         return patterns;
     }
 
     /** Whole-string match with {@code *} standing in for any run of characters. */
-    static Pattern glob(String glob)
+    private static Pattern glob(String glob, int flags)
     {
         String[] segments = glob.toLowerCase(Locale.ROOT).split("\\*", -1);
         StringBuilder regex = new StringBuilder("^");
@@ -96,7 +102,7 @@ final class MenuText
                 regex.append(Pattern.quote(segments[i]));
             }
         }
-        return Pattern.compile(regex.append('$').toString());
+        return Pattern.compile(regex.append('$').toString(), flags);
     }
 
     static boolean matchesAny(List<Pattern> patterns, String value)

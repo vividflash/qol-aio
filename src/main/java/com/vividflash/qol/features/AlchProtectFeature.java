@@ -356,6 +356,12 @@ public class AlchProtectFeature implements Feature
     private void hideItemsTask()
     {
         hidePending = false;
+        // Alching can end between queueing and this pass; hiding then would
+        // leave slots hidden with no redraw due to restore them.
+        if (!enabled || !isAlching())
+        {
+            return;
+        }
         Widget container = mode == AlchMode.RING
             ? client.getWidget(InterfaceID.LumbridgeAlchemy.ITEMS)
             : client.getWidget(InterfaceID.Inventory.ITEMS);

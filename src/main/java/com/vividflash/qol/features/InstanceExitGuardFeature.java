@@ -133,8 +133,11 @@ public class InstanceExitGuardFeature implements Feature
     {
         reload();
         eventBus.register(this);
-        log.debug("[exit] [config] enabled={} lootValue={} whitelist={} objectOptions={} itemOptions={}",
-            enabled, lootValue, whitelist.size(), objectOptions.size(), itemOptions.size());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[exit] [config] enabled={} lootValue={} whitelist={} objectOptions={} itemOptions={}",
+                enabled, lootValue, whitelist.size(), objectOptions.size(), itemOptions.size());
+        }
         // Spawn events for loot already on the floor have passed, so starting
         // up inside an instance reads the current scene once.
         if (client.getGameState() == GameState.LOGGED_IN)
@@ -397,11 +400,32 @@ public class InstanceExitGuardFeature implements Feature
         MenuAction type = entry.getType();
         if (OBJECT_OPTIONS.contains(type))
         {
-            return matchesAny(objectOptions, entry.getOption());
+            return matchesOption(objectOptions, entry.getOption());
         }
         if (WIDGET_OPTIONS.contains(type))
         {
-            return matchesAny(itemOptions, entry.getOption());
+            return matchesOption(itemOptions, entry.getOption());
+        }
+        return false;
+    }
+
+    /**
+     * Option patterns are case-insensitive, so the raw option is matched
+     * as-is on this per-frame path; tags are stripped only when present.
+     */
+    private static boolean matchesOption(List<Pattern> patterns, String option)
+    {
+        if (option == null)
+        {
+            return false;
+        }
+        String cleaned = (option.indexOf('<') >= 0 ? Text.removeTags(option) : option).trim();
+        for (Pattern pattern : patterns)
+        {
+            if (pattern.matcher(cleaned).matches())
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -524,7 +548,7 @@ public class InstanceExitGuardFeature implements Feature
         enabled = config.deprioLeave();
         lootValue = config.deprioLeaveLootValue();
         whitelist = MenuText.globList(config.deprioLeaveWhitelist());
-        objectOptions = MenuText.globList(config.deprioLeaveOptions());
-        itemOptions = MenuText.globList(config.deprioLeaveItemOptions());
+        objectOptions = MenuText.globList(config.deprioLeaveOptions(), Pattern.CASE_INSENSITIVE);
+        itemOptions = MenuText.globList(config.deprioLeaveItemOptions(), Pattern.CASE_INSENSITIVE);
     }
 }

@@ -105,8 +105,11 @@ public class NoUseFarmProduceOnMiscFeature implements Feature
     public void startUp()
     {
         reload();
-        log.debug("[farmuse] [config] enabled={} produceRules={} sceneryRules={}",
-            enabled, producePatterns.size(), sceneryPatterns.size());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[farmuse] [config] enabled={} produceRules={} sceneryRules={}",
+                enabled, producePatterns.size(), sceneryPatterns.size());
+        }
         eventBus.register(this);
     }
 

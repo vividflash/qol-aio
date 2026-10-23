@@ -109,7 +109,7 @@ public class NoEmptyPotionFeature implements Feature
     @Subscribe
     public void onClientTick(ClientTick tick)
     {
-        if (!enabled)
+        if (!enabled || (inventoryLoaded && !potionCarried))
         {
             return;
         }

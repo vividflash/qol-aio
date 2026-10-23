@@ -177,18 +177,13 @@ public class PortTaskAttackFilterFeature implements Feature
     @Subscribe
     public void onClientTick(ClientTick tick)
     {
-        if (!enabled)
+        // Fail open until the table is read and the task slots are current.
+        if (!enabled || !tableCached || targetsStale || allTargetNpcIds.isEmpty())
         {
             return;
         }
 
         if (client.getGameState() != GameState.LOGGED_IN || client.isMenuOpen())
-        {
-            return;
-        }
-
-        // Fail open until the table is read and the task slots are current.
-        if (!tableCached || targetsStale || allTargetNpcIds.isEmpty())
         {
             return;
         }

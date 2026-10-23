@@ -60,9 +60,10 @@ import net.runelite.client.util.Text;
  * Removes "Chop"/"Cut" on trees (and a few tree-like objects) when no axe is
  * equipped/carried, and "Mine" on rocks when no pickaxe is equipped/carried.
  * A "require fishing tool" toggle covers fishing spots, per the wiki's
- * Fishing equipment table: Net (small net), Big Net, Bait (rod/oily rod),
- * Lure (fly rod), Rod (barbarian rod/pearl barbarian rod), Fish (karambwan
- * vessel), Cage (lobster pot), and Harpoon.
+ * Fishing equipment table: Net (small net), Big Net, Bait (rod/oily rod or
+ * their pearl versions), Lure (fly rod or pearl fly rod), Rod (barbarian
+ * rod/pearl barbarian rod), Fish (karambwan vessel), Cage (lobster pot), and
+ * Harpoon.
  *
  * <p>Harpoon is special: Otto Godblessed's Barbarian Training lets you fish
  * tuna/swordfish and (much later) shark bare-handed, so removing the option
@@ -202,6 +203,12 @@ public class RequireToolFeature implements Feature
     private int lastRemoved;
     private int lastDemoted;
 
+    // Last raw Chop/Cut target, the override set it was checked against and
+    // the verdict, so a hovered tree is classified once rather than per frame.
+    private String lastAxeTarget;
+    private Set<String> lastAxeOverrides;
+    private boolean lastAxeVerdict;
+
     /** Fishing option to the tools that satisfy it, per the wiki's equipment table. */
     private static final Map<String, Set<Integer>> FISHING_TOOLS = buildFishingTools();
 
@@ -210,8 +217,9 @@ public class RequireToolFeature implements Feature
         Map<String, Set<Integer>> map = new HashMap<>();
         map.put("Small Net", Set.of(ItemID.NET));
         map.put("Big Net", Set.of(ItemID.BIG_NET));
-        map.put("Bait", Set.of(ItemID.FISHING_ROD, ItemID.OILY_FISHING_ROD));
-        map.put("Lure", Set.of(ItemID.FLY_FISHING_ROD));
+        map.put("Bait", Set.of(ItemID.FISHING_ROD, ItemID.OILY_FISHING_ROD,
+            ItemID.FISHINGROD_PEARL, ItemID.FISHINGROD_PEARL_OILY));
+        map.put("Lure", Set.of(ItemID.FLY_FISHING_ROD, ItemID.FISHINGROD_PEARL_FLY));
         map.put("Rod", Set.of(ItemID.BRUT_FISHING_ROD, ItemID.FISHINGROD_PEARL_BRUT));
         map.put("Fish", Set.of(ItemID.TBWT_KARAMBWAN_VESSEL, ItemID.TBWT_KARAMBWAN_VESSEL_LOADED_WITH_KARAMBWANJI));
         map.put("Cage", Set.of(ItemID.LOBSTER_POT));
@@ -224,8 +232,11 @@ public class RequireToolFeature implements Feature
     {
         loadConfig();
         eventBus.register(this);
-        log.debug("[tool] [config] axe={} pickaxe={} fishing={} bareHandedHarpoon={}",
-            requireAxe, requirePickaxe, requireFishing, harpoonBareHanded);
+        if (log.isDebugEnabled())
+        {
+            log.debug("[tool] [config] axe={} pickaxe={} fishing={} bareHandedHarpoon={}",
+                requireAxe, requirePickaxe, requireFishing, harpoonBareHanded);
+        }
         // Nothing fires ItemContainerChanged until the next inventory or gear
         // change, so starting up already logged in would leave both caches
         // empty and the guard would act as though you carry nothing.
@@ -418,11 +429,11 @@ public class RequireToolFeature implements Feature
             String option = entry.getOption();
             if (checkAxe)
             {
-                if (option.startsWith("Chop") && isAxeTarget(Text.removeTags(entry.getTarget()), CHOP_OVERRIDES))
+                if (option.startsWith("Chop") && isAxeTarget(entry.getTarget(), CHOP_OVERRIDES))
                 {
                     return true;
                 }
-                if (option.startsWith("Cut") && isAxeTarget(Text.removeTags(entry.getTarget()), CUT_OVERRIDES))
+                if (option.startsWith("Cut") && isAxeTarget(entry.getTarget(), CUT_OVERRIDES))
                 {
                     return true;
                 }
@@ -628,9 +639,17 @@ public class RequireToolFeature implements Feature
         return false;
     }
 
-    /** Trees of any capitalisation, plus the tree-like objects the sets name. */
-    private boolean isAxeTarget(String target, Set<String> overrides)
+    /** Trees of any capitalisation, plus the tree-like objects the sets name. Takes the raw menu target. */
+    private boolean isAxeTarget(String rawTarget, Set<String> overrides)
     {
-        return target.toLowerCase(Locale.ROOT).contains("tree") || overrides.contains(target);
+        if (rawTarget.equals(lastAxeTarget) && overrides == lastAxeOverrides)
+        {
+            return lastAxeVerdict;
+        }
+        String target = Text.removeTags(rawTarget);
+        lastAxeVerdict = target.toLowerCase(Locale.ROOT).contains("tree") || overrides.contains(target);
+        lastAxeTarget = rawTarget;
+        lastAxeOverrides = overrides;
+        return lastAxeVerdict;
     }
 }

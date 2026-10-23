@@ -137,7 +137,8 @@ public class GiantsFoundryTempFeature implements Feature
 
     // Overwork tracking. bonusWindowOpen mirrors the sweetspot widget state from tick
     // to tick; bonusExpired latches true when it transitions open -> closed and stays
-    // true until the next station action, marking clicks that would overwork.
+    // true until the next station action, heat/cool action or newly opened
+    // window, marking clicks that would overwork.
     private boolean bonusWindowOpen;
     private boolean bonusExpired;
 
@@ -217,7 +218,12 @@ public class GiantsFoundryTempFeature implements Feature
         }
 
         boolean open = isBonusWindowOpen();
-        if (bonusWindowOpen && !open)
+        if (open)
+        {
+            // A new window is open: clicking inside it is the bonus, not an overwork.
+            bonusExpired = false;
+        }
+        else if (bonusWindowOpen)
         {
             // The window seen open on an earlier tick has now closed: a repeat station click overworks.
             bonusExpired = true;
@@ -238,6 +244,11 @@ public class GiantsFoundryTempFeature implements Feature
         String option = Text.removeTags(event.getMenuEntry().getOption()).toLowerCase(Locale.ROOT);
         if (!isForgeAction(option))
         {
+            if (isTemperatureAction(option))
+            {
+                // Heating or cooling ends the work cycle, so the next station click starts fresh.
+                bonusExpired = false;
+            }
             return;
         }
 
@@ -297,12 +308,17 @@ public class GiantsFoundryTempFeature implements Feature
      */
     private boolean isForgeAction(String option)
     {
-        if (option.contains("heat") || option.contains("quench") || option.contains("cool"))
+        if (isTemperatureAction(option))
         {
             return false;
         }
         return option.contains("hammer") || option.contains("grind")
             || option.contains("polish") || option.contains("work");
+    }
+
+    private static boolean isTemperatureAction(String option)
+    {
+        return option.contains("heat") || option.contains("quench") || option.contains("cool");
     }
 
     /** True while the Foundry's crafting HUD is on screen. */
