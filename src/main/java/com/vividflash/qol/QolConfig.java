@@ -327,7 +327,7 @@ public interface QolConfig extends Config
     @ConfigItem(
         keyName = "easyUnnote",
         name = "Noted item Use protection",
-        description = "Noted item selected: only allows Use on bankers, bank booths/chests and the Giant Clam.",
+        description = "Noted item selected: keeps Use only on bank-related NPCs and objects, and removes Examine entries.",
         section = useSection,
         position = 30
     )
@@ -1037,7 +1037,7 @@ public interface QolConfig extends Config
     @ConfigItem(
         keyName = "muteSkilling",
         name = "Mute skilling sounds",
-        description = "Chopping, mining, cooking, smithing, firemaking, GE plops, item pickup and drop.",
+        description = "Chopping, mining, cooking, smithing, firemaking, plant picking, bone burying, GE plops, item pickup and drop.",
         section = hideMuteSection,
         position = 10
     )

@@ -26,6 +26,7 @@ package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -93,12 +94,15 @@ public class WithdrawLimitFeature implements Feature
     @Override
     public void startUp()
     {
-        log.debug("[withdraw] [config] enabled={} limits={} ash={}/{} spade={} elkhorn={} pillar={} coralAmount={} blockMessages={}",
-            config.withdrawLimitEnabled(), config.withdrawLimits().replace('\n', ' '),
-            config.volcanicAshWithdrawLimitEnabled(), config.volcanicAshWithdrawLimitAmount(),
-            config.spadeWithdrawLimitEnabled(), config.coralElkhornWithdrawLimitEnabled(),
-            config.coralPillarWithdrawLimitEnabled(), config.coralWithdrawLimitAmount(),
-            config.showBlockMessages());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[withdraw] [config] enabled={} limits={} ash={}/{} spade={} elkhorn={} pillar={} coralAmount={} blockMessages={}",
+                config.withdrawLimitEnabled(), config.withdrawLimits().replace('\n', ' '),
+                config.volcanicAshWithdrawLimitEnabled(), config.volcanicAshWithdrawLimitAmount(),
+                config.spadeWithdrawLimitEnabled(), config.coralElkhornWithdrawLimitEnabled(),
+                config.coralPillarWithdrawLimitEnabled(), config.coralWithdrawLimitAmount(),
+                config.showBlockMessages());
+        }
         limits = parseLimits(config.withdrawLimits());
         eventBus.register(this);
         // Nothing fires ItemContainerChanged until the next inventory change,
@@ -187,7 +191,7 @@ public class WithdrawLimitFeature implements Feature
             if (!limits.isEmpty())
             {
                 ItemComposition composition = client.getItemDefinition(id);
-                if (limits.containsKey(composition.getName().toLowerCase()))
+                if (limits.containsKey(composition.getName().toLowerCase(Locale.ROOT)))
                 {
                     // A noted stack counts under its unnoted id, the id a bank click carries.
                     int base = composition.getNote() != -1 ? composition.getLinkedNoteId() : id;
@@ -258,7 +262,7 @@ public class WithdrawLimitFeature implements Feature
         }
 
         ItemComposition item = client.getItemDefinition(itemId);
-        Integer limit = limits.get(item.getName().toLowerCase());
+        Integer limit = limits.get(item.getName().toLowerCase(Locale.ROOT));
         if (limit == null)
         {
             return;
@@ -314,7 +318,7 @@ public class WithdrawLimitFeature implements Feature
             {
                 continue;
             }
-            String name = parts[0].trim().toLowerCase();
+            String name = parts[0].trim().toLowerCase(Locale.ROOT);
             if (name.isEmpty())
             {
                 continue;

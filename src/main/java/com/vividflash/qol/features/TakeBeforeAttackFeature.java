@@ -26,6 +26,7 @@ package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -62,6 +63,13 @@ public class TakeBeforeAttackFeature implements Feature
     private List<Pattern> monsterExcludePatterns = List.of();
     private List<Pattern> itemExcludePatterns = List.of();
 
+    // Last raw target and its verdict per kind, so a hovered drop or monster
+    // is not re-matched on every menu build.
+    private String lastTakeTarget;
+    private boolean lastTakeVerdict;
+    private String lastAttackTarget;
+    private boolean lastAttackVerdict;
+
     @Inject
     private Client client;
 
@@ -89,7 +97,7 @@ public class TakeBeforeAttackFeature implements Feature
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
-        if (QolConfig.GROUP.equals(event.getGroup()))
+        if (QolConfig.GROUP.equals(event.getGroup()) && event.getKey().startsWith("takeBeforeAttack"))
         {
             reload();
         }
@@ -180,14 +188,16 @@ public class TakeBeforeAttackFeature implements Feature
         {
             return false;
         }
-        String target = MenuText.stripCombatLevel(Text.removeTags(entry.getTarget()).toLowerCase());
-        // The exclusion list wins: a monster matching both the enable list and
-        // the exclude list is treated as not-a-target (swap does not apply).
-        if (matchesAny(monsterExcludePatterns, target))
+        String raw = entry.getTarget();
+        if (!raw.equals(lastAttackTarget))
         {
-            return false;
+            String target = MenuText.stripCombatLevel(Text.removeTags(raw).toLowerCase(Locale.ROOT));
+            // The exclusion list wins: a monster matching both the enable list and
+            // the exclude list is treated as not-a-target (swap does not apply).
+            lastAttackVerdict = !matchesAny(monsterExcludePatterns, target) && matchesAny(monsterPatterns, target);
+            lastAttackTarget = raw;
         }
-        return matchesAny(monsterPatterns, target);
+        return lastAttackVerdict;
     }
 
     private boolean isTake(MenuEntry entry)
@@ -204,8 +214,14 @@ public class TakeBeforeAttackFeature implements Feature
         }
         // Ground-item exclusions withhold specific drops (e.g. plain Bones)
         // from being prioritized, independent of the monster scoping above.
-        String itemName = Text.removeTags(entry.getTarget()).toLowerCase();
-        return !matchesAny(itemExcludePatterns, itemName);
+        String raw = entry.getTarget();
+        if (!raw.equals(lastTakeTarget))
+        {
+            String itemName = Text.removeTags(raw).toLowerCase(Locale.ROOT);
+            lastTakeVerdict = !matchesAny(itemExcludePatterns, itemName);
+            lastTakeTarget = raw;
+        }
+        return lastTakeVerdict;
     }
 
     /** Options rarely carry tags, so skip the copy when there are none. */
@@ -221,6 +237,8 @@ public class TakeBeforeAttackFeature implements Feature
 
     private void reload()
     {
+        lastTakeTarget = null;
+        lastAttackTarget = null;
         enabled = config.takeBeforeAttack();
         monsterPatterns = MenuText.globList(config.takeBeforeAttackMonsters());
         monsterExcludePatterns = MenuText.globList(config.takeBeforeAttackMonstersExclude());

@@ -27,6 +27,7 @@ package com.vividflash.qol.features;
 import com.vividflash.qol.QolConfig;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -117,9 +118,12 @@ public class PickpocketGuardFeature implements Feature
     @Override
     public void startUp()
     {
-        log.debug("[config] pickpocket enabled={} margin={} safePlunder={} blockSarcophagus={}",
-            config.pickpocketGuard(), config.pickpocketDamageMargin(), config.pickpocketSafePlunder(),
-            config.pickpocketBlockSarcophagus());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[config] pickpocket enabled={} margin={} safePlunder={} blockSarcophagus={}",
+                config.pickpocketGuard(), config.pickpocketDamageMargin(), config.pickpocketSafePlunder(),
+                config.pickpocketBlockSarcophagus());
+        }
         eventBus.register(this);
     }
 
@@ -151,13 +155,13 @@ public class PickpocketGuardFeature implements Feature
 
         if ("Pickpocket".equals(option))
         {
-            String npcName = MenuText.stripCombatLevel(target.toLowerCase());
+            String npcName = MenuText.stripCombatLevel(target.toLowerCase(Locale.ROOT));
             int npcDamage = stunDamageFor(npcName);
             int blockThreshold = npcDamage + config.pickpocketDamageMargin();
             if (currentHealth <= blockThreshold)
             {
                 block(event, MenuText.stripCombatLevel(target) + " can hit " + npcDamage
-                    + " on a failed pickpocket - eat first"
+                    + " on a failed pickpocket. Eat first"
                     + " (guarding at " + blockThreshold + " HP).");
             }
             return;
@@ -167,7 +171,7 @@ public class PickpocketGuardFeature implements Feature
         boolean speartrapRisk = speartrapOption && "Speartrap".equals(target) && currentHealth <= MAX_DAMAGE_SPEARTRAP;
         if ((urnRisk || speartrapRisk) && config.pickpocketSafePlunder())
         {
-            block(event, "The " + target.toLowerCase() + " could kill you - eat first.");
+            block(event, "The " + target.toLowerCase(Locale.ROOT) + " could kill you. Eat first.");
             return;
         }
 

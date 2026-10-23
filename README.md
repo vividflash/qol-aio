@@ -109,8 +109,9 @@ sections, and each feature has its own toggle.
   active. Default on.
 - **Min ashes**: default `3` (range 1 to 28).
 - **Neypotzli essence guard**: inside Neypotzli, blocks the dungeon exit
-  (`Pass-through`), any option containing `teleport`, `Break` on teleport
-  tablets and `Rub` on teleport jewellery while you carry at least **Min
+  (`Pass-through`), any option containing `teleport`, `Cast` on spells whose
+  name contains `teleport`, `Break` on teleport tablets and `Rub` on teleport
+  jewellery while you carry at least **Min
   essence to guard** sulphurous essence. Default on.
 - **Min essence to guard**: default `1` (range 1 to 28).
 - **Alch protection**: hides protected items from the inventory while Low or

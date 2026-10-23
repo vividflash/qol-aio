@@ -27,6 +27,7 @@ package com.vividflash.qol.features;
 import com.vividflash.qol.QolConfig;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -36,6 +37,8 @@ import net.runelite.api.GameState;
 import net.runelite.api.Menu;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.widgets.Widget;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -46,7 +49,7 @@ import net.runelite.client.util.Text;
  * Removes "Use [farm produce] -&gt; farming patch / stone" menu entries.
  * The Ardougne tool leprechaun stands on a stone, so at some camera angles
  * the note-your-produce click lands on the stone (or the patch beside him)
- * instead of the leprechaun - the misclick just walks you over and fizzles,
+ * instead of the leprechaun; the misclick just walks you over and fizzles,
  * so nothing is lost, but removing the entries stops the pointless walk and
  * cuts menu clutter. Menu-removal style: silent, no chat feedback.
  *
@@ -80,6 +83,15 @@ public class NoUseFarmProduceOnMiscFeature implements Feature
     private List<Pattern> sceneryPatterns = List.of();
     private boolean enabled;
 
+    private static final int RULE_NONE = 0;
+    private static final int RULE_PRODUCE = 1;
+    private static final int RULE_SAPLING = 2;
+
+    // Rule for the last selected item, so a held selection is not
+    // re-classified on every client tick.
+    private int ruleItemId = -1;
+    private int itemRule;
+
     @Inject
     private Client client;
 
@@ -107,7 +119,8 @@ public class NoUseFarmProduceOnMiscFeature implements Feature
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
-        if (QolConfig.GROUP.equals(event.getGroup()))
+        if (QolConfig.GROUP.equals(event.getGroup())
+            && (event.getKey().startsWith("noUsePlantsOnStone") || "noUseSaplingsOnSceneryList".equals(event.getKey())))
         {
             reload();
         }
@@ -128,12 +141,20 @@ public class NoUseFarmProduceOnMiscFeature implements Feature
             return;
         }
 
+        // The produce half of every "Use X -> object" entry is the selected
+        // item, so it is classified once per selection, not once per entry.
+        int rule = selectedItemRule();
+        if (rule == RULE_NONE)
+        {
+            return;
+        }
+
         Menu menu = client.getMenu();
         MenuEntry[] entries = menu.getMenuEntries();
         int kept = 0;
         for (MenuEntry entry : entries)
         {
-            if (!isUsePlantOnPatch(entry))
+            if (!isBlockedTarget(entry, rule))
             {
                 entries[kept++] = entry;
             }
@@ -151,48 +172,58 @@ public class NoUseFarmProduceOnMiscFeature implements Feature
         }
     }
 
-    private boolean isUsePlantOnPatch(MenuEntry entry)
+    /**
+     * Which rule the selected inventory item falls under. A spell or any other
+     * non-inventory selection matches no rule, so its entries stay.
+     */
+    private int selectedItemRule()
+    {
+        Widget selected = client.getSelectedWidget();
+        if (selected == null || selected.getId() != InterfaceID.Inventory.ITEMS)
+        {
+            return RULE_NONE;
+        }
+        int itemId = selected.getItemId();
+        if (itemId <= 0)
+        {
+            return RULE_NONE;
+        }
+        if (itemId != ruleItemId)
+        {
+            String name = client.getItemDefinition(itemId).getName().toLowerCase(Locale.ROOT);
+            if (SAPLING_PATTERN.matcher(name).matches())
+            {
+                itemRule = sceneryPatterns.isEmpty() ? RULE_NONE : RULE_SAPLING;
+            }
+            else
+            {
+                itemRule = MenuText.matchesAny(producePatterns, name) ? RULE_PRODUCE : RULE_NONE;
+            }
+            ruleItemId = itemId;
+        }
+        return itemRule;
+    }
+
+    private boolean isBlockedTarget(MenuEntry entry, int rule)
     {
         if (entry.getType() != MenuAction.WIDGET_TARGET_ON_GAME_OBJECT)
         {
             return false;
         }
 
-        // Target reads like "<produce> -> <object>". Split on the arrow.
-        String target = Text.removeTags(entry.getTarget()).toLowerCase();
+        // Target reads like "<produce> -> <object>"; only the object half is read here.
+        String target = Text.removeTags(entry.getTarget()).toLowerCase(Locale.ROOT);
         int arrow = target.indexOf("->");
-        String producePart = arrow >= 0 ? target.substring(0, arrow).trim() : target;
         String objectPart = arrow >= 0 ? target.substring(arrow + 2).trim() : target;
 
-        if (SAPLING_PATTERN.matcher(producePart).matches())
+        if (rule == RULE_SAPLING)
         {
-            for (Pattern p : sceneryPatterns)
-            {
-                if (p.matcher(objectPart).matches())
-                {
-                    return true;
-                }
-            }
-            return false;
+            return MenuText.matchesAny(sceneryPatterns, objectPart);
         }
 
-        boolean objectMatch = false;
         for (String kw : OBJECT_KEYWORDS)
         {
             if (objectPart.contains(kw))
-            {
-                objectMatch = true;
-                break;
-            }
-        }
-        if (!objectMatch)
-        {
-            return false;
-        }
-
-        for (Pattern p : producePatterns)
-        {
-            if (p.matcher(producePart).matches())
             {
                 return true;
             }
@@ -202,6 +233,7 @@ public class NoUseFarmProduceOnMiscFeature implements Feature
 
     private void reload()
     {
+        ruleItemId = -1;
         enabled = config.noUsePlantsOnStone();
         producePatterns = MenuText.globList(config.noUsePlantsOnStoneList());
         sceneryPatterns = MenuText.globList(config.noUseSaplingsOnSceneryList());

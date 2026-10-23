@@ -26,6 +26,7 @@ package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -102,6 +103,7 @@ public class AlchProtectFeature implements Feature
     private AlchMode mode = AlchMode.NONE;
     private boolean wasDragging = false;
     private final Set<Widget> hiddenItems = new HashSet<>();
+    private boolean hidePending;
 
     // Config cached on start and on change; read on every inventory redraw.
     private boolean enabled;
@@ -119,8 +121,11 @@ public class AlchProtectFeature implements Feature
         protectUntradeables = config.alchProtectUntradeables();
         protectCollectionLog = config.alchProtectCollectionLog();
         protectList = parseProtectList(config.alchProtectList());
-        log.debug("[config] enabled={} untradeables={} collectionLog={} list={}",
-            enabled, protectUntradeables, protectCollectionLog, config.alchProtectList());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[config] enabled={} untradeables={} collectionLog={} list={}",
+                enabled, protectUntradeables, protectCollectionLog, config.alchProtectList());
+        }
         eventBus.register(this);
         // If the plugin starts while already logged in, the cache is available now.
         if (client.getGameState() == GameState.LOGGED_IN)
@@ -135,6 +140,7 @@ public class AlchProtectFeature implements Feature
         showHidden();
         eventBus.unregister(this);
         mode = AlchMode.NONE;
+        hidePending = false;
     }
 
     private boolean isAlching()
@@ -195,6 +201,7 @@ public class AlchProtectFeature implements Feature
         else if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING)
         {
             mode = AlchMode.NONE;
+            hidePending = false;
             showHidden();
         }
     }
@@ -336,11 +343,19 @@ public class AlchProtectFeature implements Feature
 
     private void hideItems()
     {
+        // The inventory redraw fires once per slot, so one queued pass covers
+        // the whole burst.
+        if (hidePending)
+        {
+            return;
+        }
+        hidePending = true;
         clientThread.invokeAtTickEnd(this::hideItemsTask);
     }
 
     private void hideItemsTask()
     {
+        hidePending = false;
         Widget container = mode == AlchMode.RING
             ? client.getWidget(InterfaceID.LumbridgeAlchemy.ITEMS)
             : client.getWidget(InterfaceID.Inventory.ITEMS);
@@ -377,7 +392,7 @@ public class AlchProtectFeature implements Feature
     private boolean shouldProtect(int itemId)
     {
         ItemComposition item = itemManager.getItemComposition(itemId);
-        if (!protectList.isEmpty() && protectList.contains(Text.removeTags(item.getName()).toLowerCase()))
+        if (!protectList.isEmpty() && protectList.contains(Text.removeTags(item.getName()).toLowerCase(Locale.ROOT)))
         {
             return true;
         }
@@ -454,6 +469,7 @@ public class AlchProtectFeature implements Feature
         {
             // Cache not ready or layout changed: leave collection-log protection
             // inactive rather than crashing the feature. Retried on next login.
+            log.debug("[alch] collection log cache walk failed", ex);
             return;
         }
         if (ids.isEmpty())
@@ -490,7 +506,7 @@ public class AlchProtectFeature implements Feature
             String trimmed = entry.trim();
             if (!trimmed.isEmpty())
             {
-                out.add(trimmed.toLowerCase());
+                out.add(trimmed.toLowerCase(Locale.ROOT));
             }
         }
         return out;

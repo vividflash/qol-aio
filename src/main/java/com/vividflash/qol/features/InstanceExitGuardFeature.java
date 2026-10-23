@@ -27,6 +27,7 @@ package com.vividflash.qol.features;
 import com.vividflash.qol.QolConfig;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -50,6 +51,7 @@ import net.runelite.api.events.ItemDespawned;
 import net.runelite.api.events.ItemQuantityChanged;
 import net.runelite.api.events.ItemSpawned;
 import net.runelite.api.events.PostMenuSort;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
@@ -88,6 +90,9 @@ public class InstanceExitGuardFeature implements Feature
 
     private static final String USE_OPTION = "Use";
 
+    // Any always-traded item: a price above 0 means the price map has loaded.
+    private static final int PRICE_PROBE_ITEM = ItemID.FIRERUNE;
+
     @Inject
     private Client client;
 
@@ -110,6 +115,12 @@ public class InstanceExitGuardFeature implements Feature
     // stacks or the settings change instead of on every menu build.
     private boolean valuableLoot;
     private boolean valuableLootDirty = true;
+    // Sunk count last logged, so the per-frame reorder logs only on change.
+    private int lastSunk;
+    // ItemManager fills its price map on an executor after client start and
+    // posts no event, so a scan before that saw every price as 0. Latched once
+    // a known tradeable reads a price; the scan is then dirtied one more time.
+    private boolean pricesLoaded;
 
     private boolean enabled;
     private int lootValue;
@@ -176,7 +187,7 @@ public class InstanceExitGuardFeature implements Feature
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
-        if (QolConfig.GROUP.equals(event.getGroup()))
+        if (QolConfig.GROUP.equals(event.getGroup()) && event.getKey().startsWith("deprioLeave"))
         {
             reload();
             valuableLootDirty = true;
@@ -197,12 +208,13 @@ public class InstanceExitGuardFeature implements Feature
     @Subscribe
     public void onGameTick(GameTick event)
     {
-        // Item prices can load after a stack was scanned, so rescan once a
-        // tick while anything is tracked and nothing counts yet. A positive
-        // answer only changes through the item events or settings, which
-        // dirty it themselves.
-        if (!valuableLoot && !groundItems.isEmpty())
+        if (pricesLoaded || groundItems.isEmpty())
         {
+            return;
+        }
+        if (itemManager.getItemPrice(PRICE_PROBE_ITEM) > 0)
+        {
+            pricesLoaded = true;
             valuableLootDirty = true;
         }
     }
@@ -244,7 +256,18 @@ public class InstanceExitGuardFeature implements Feature
         {
             return;
         }
-        stacks.remove(item.getId());
+        // Non-stackable drops spawn one item each under the same id, so only
+        // this item's quantity leaves the tracked total.
+        Integer tracked = stacks.get(item.getId());
+        int left = (tracked == null ? 0 : tracked) - item.getQuantity();
+        if (left > 0)
+        {
+            stacks.put(item.getId(), left);
+        }
+        else
+        {
+            stacks.remove(item.getId());
+        }
         if (stacks.isEmpty())
         {
             groundItems.remove(spot);
@@ -265,7 +288,21 @@ public class InstanceExitGuardFeature implements Feature
         {
             return;
         }
-        stacksAt(spot).put(item.getId(), event.getNewQuantity());
+        Map<Integer, Integer> stacks = stacksAt(spot);
+        Integer tracked = stacks.get(item.getId());
+        int total = (tracked == null ? 0 : tracked) + event.getNewQuantity() - event.getOldQuantity();
+        if (total > 0)
+        {
+            stacks.put(item.getId(), total);
+        }
+        else
+        {
+            stacks.remove(item.getId());
+            if (stacks.isEmpty())
+            {
+                groundItems.remove(spot);
+            }
+        }
         valuableLootDirty = true;
     }
 
@@ -313,6 +350,7 @@ public class InstanceExitGuardFeature implements Feature
 
         if (first < 0)
         {
+            lastSunk = 0;
             return;
         }
 
@@ -347,7 +385,11 @@ public class InstanceExitGuardFeature implements Feature
             }
         }
         menu.setMenuEntries(reordered);
-        log.debug("[exit] sank {} leave entries below anchor index {}", sunkCount, anchor);
+        if (sunkCount != lastSunk)
+        {
+            lastSunk = sunkCount;
+            log.debug("[exit] sank {} leave entries below anchor index {}", sunkCount, anchor);
+        }
     }
 
     private boolean isLeaveEntry(MenuEntry entry)
@@ -466,7 +508,7 @@ public class InstanceExitGuardFeature implements Feature
         {
             return false;
         }
-        String cleaned = Text.removeTags(value).trim().toLowerCase();
+        String cleaned = Text.removeTags(value).trim().toLowerCase(Locale.ROOT);
         for (Pattern pattern : patterns)
         {
             if (pattern.matcher(cleaned).matches())

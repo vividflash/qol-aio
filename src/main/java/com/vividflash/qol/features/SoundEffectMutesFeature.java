@@ -151,9 +151,12 @@ public class SoundEffectMutesFeature implements Feature
     public void startUp()
     {
         rebuild();
-        log.debug("[config] mutes skilling={} prayer={} townCrier={} teleport={} othersOnly={} wildernessExempt={}",
-            config.muteSkilling(), config.mutePrayer(), config.muteTownCrier(), config.muteTeleport(),
-            config.muteOthersOnly(), config.muteOthersWildernessExempt());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[config] mutes skilling={} prayer={} townCrier={} teleport={} othersOnly={} wildernessExempt={}",
+                config.muteSkilling(), config.mutePrayer(), config.muteTownCrier(), config.muteTeleport(),
+                config.muteOthersOnly(), config.muteOthersWildernessExempt());
+        }
         eventBus.register(this);
     }
 

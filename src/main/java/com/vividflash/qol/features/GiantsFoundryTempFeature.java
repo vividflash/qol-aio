@@ -27,8 +27,11 @@ package com.vividflash.qol.features;
 import com.vividflash.qol.QolConfig;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +85,13 @@ public class GiantsFoundryTempFeature implements Feature
 
     // Bonus ("sweetspot") window: SWEETSPOT_LAYER child(0) glows this colour while open.
     private static final int BONUS_ACTIVE_TEXT_COLOR = 0xFCD703;
+
+    // The station clicks arrive as object options only.
+    private static final Set<MenuAction> OBJECT_OPTIONS = EnumSet.of(
+        MenuAction.GAME_OBJECT_FIRST_OPTION, MenuAction.GAME_OBJECT_SECOND_OPTION,
+        MenuAction.GAME_OBJECT_THIRD_OPTION, MenuAction.GAME_OBJECT_FOURTH_OPTION,
+        MenuAction.GAME_OBJECT_FIFTH_OPTION
+    );
 
     private enum Stage
     {
@@ -146,8 +156,11 @@ public class GiantsFoundryTempFeature implements Feature
         bonusWindowOpen = false;
         bonusExpired = false;
         hudLoaded = true;
-        log.debug("[foundry] [config] tempGuard={} overworkGuard={} blockMessages={}",
-            config.foundryTempGuard(), overworkGuard, config.showBlockMessages());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[foundry] [config] tempGuard={} overworkGuard={} blockMessages={}",
+                config.foundryTempGuard(), overworkGuard, config.showBlockMessages());
+        }
     }
 
     @Override
@@ -217,14 +230,12 @@ public class GiantsFoundryTempFeature implements Feature
     public void onMenuOptionClicked(MenuOptionClicked event)
     {
         MenuAction type = event.getMenuEntry().getType();
-        boolean objectOption = type.getId() >= MenuAction.GAME_OBJECT_FIRST_OPTION.getId()
-            && type.getId() <= MenuAction.GAME_OBJECT_FIFTH_OPTION.getId();
-        if (!objectOption)
+        if (!OBJECT_OPTIONS.contains(type))
         {
             return;
         }
 
-        String option = Text.removeTags(event.getMenuEntry().getOption()).toLowerCase();
+        String option = Text.removeTags(event.getMenuEntry().getOption()).toLowerCase(Locale.ROOT);
         if (!isForgeAction(option))
         {
             return;
@@ -241,7 +252,7 @@ public class GiantsFoundryTempFeature implements Feature
             if (config.showBlockMessages())
             {
                 client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
-                    "[Safety] The bonus window has closed - working again now overworks the metal.", null);
+                    "[Safety] The bonus window has closed, so working again now overworks the metal.", null);
             }
             return;
         }
@@ -269,7 +280,7 @@ public class GiantsFoundryTempFeature implements Feature
                 if (config.showBlockMessages())
                 {
                     client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
-                        "[Safety] The preform is the wrong temperature for this stage - reheat/cool it first.", null);
+                        "[Safety] The preform is the wrong temperature for this stage. Reheat or cool it first.", null);
                 }
                 return;
             }

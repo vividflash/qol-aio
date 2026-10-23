@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -181,11 +182,14 @@ public class RepotFlashFeature implements Feature
         loadConfig();
         trackedPoisonMode = poisonMode;
         inventoryLoaded = false;
-        log.debug("[config] antifire={} superAntifire={} poisonMode={} overload={} menaphite={} absorption={}"
-                + " absorptionThreshold={} graceSeconds={} style={}",
-            antifireEnabled, superAntifireEnabled, trackedPoisonMode,
-            overloadEnabled, menaphiteEnabled, absorptionEnabled,
-            absorptionThreshold, config.repotFlashGraceSeconds(), style);
+        if (log.isDebugEnabled())
+        {
+            log.debug("[config] antifire={} superAntifire={} poisonMode={} overload={} menaphite={} absorption={}"
+                    + " absorptionThreshold={} graceSeconds={} style={}",
+                antifireEnabled, superAntifireEnabled, trackedPoisonMode,
+                overloadEnabled, menaphiteEnabled, absorptionEnabled,
+                absorptionThreshold, config.repotFlashGraceSeconds(), style);
+        }
         eventBus.register(this);
         overlayManager.add(itemOverlay);
         overlayManager.add(inventoryOverlay);
@@ -338,7 +342,31 @@ public class RepotFlashFeature implements Feature
         {
             loadInventory(client.getItemContainer(InventoryID.INV));
         }
+        if (trackedPoisonMode != poisonMode)
+        {
+            resyncPoisonMode();
+        }
         updateFlash();
+    }
+
+    /**
+     * Switching the poison dropdown re-reads immunity from the raw varp so the
+     * state doesn't keep the old mode's semantics until the next (up to 18 s
+     * away) pulse. The old mode's state is dropped first, so a mode with no
+     * immunity starts inactive instead of opening an expiry grace window.
+     */
+    private void resyncPoisonMode()
+    {
+        trackedPoisonMode = poisonMode;
+        EffectState state = states.get(Effect.POISON_VENOM);
+        if (state == null)
+        {
+            return;
+        }
+        state.active = false;
+        state.pulsesLeft = 0;
+        state.expiredAtTick = -1;
+        update(Effect.POISON_VENOM, poisonPulses(rawPoisonValue, trackedPoisonMode));
     }
 
     private void loadInventory(ItemContainer inventory)
@@ -496,16 +524,6 @@ public class RepotFlashFeature implements Feature
             return false;
         }
 
-        // Switching the poison dropdown re-reads immunity from the raw varp
-        // so the state doesn't keep the old mode's semantics until the next
-        // (up to 18 s away) pulse.
-        if (effect == Effect.POISON_VENOM && trackedPoisonMode != poisonMode)
-        {
-            trackedPoisonMode = poisonMode;
-            state.expiredAtTick = -1;
-            update(effect, poisonPulses(rawPoisonValue, trackedPoisonMode));
-        }
-
         if (state.active)
         {
             // Final pulse: the effect ends within the current pulse window,
@@ -656,7 +674,7 @@ public class RepotFlashFeature implements Feature
         if (cached == null)
         {
             ItemComposition composition = client.getItemDefinition(itemId);
-            cached = composition == null ? 0 : nameMatches(composition.getName().toLowerCase());
+            cached = composition == null ? 0 : nameMatches(composition.getName().toLowerCase(Locale.ROOT));
             itemMatches.put(itemId, cached);
         }
         return cached;

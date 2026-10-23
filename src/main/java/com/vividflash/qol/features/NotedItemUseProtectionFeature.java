@@ -143,7 +143,7 @@ public class NotedItemUseProtectionFeature implements Feature
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
-        if (QolConfig.GROUP.equals(event.getGroup()))
+        if (QolConfig.GROUP.equals(event.getGroup()) && event.getKey().startsWith("easyUnnote"))
         {
             reload();
         }
@@ -152,7 +152,8 @@ public class NotedItemUseProtectionFeature implements Feature
     @Subscribe
     public void onClientTick(ClientTick tick)
     {
-        if (!enabled || client.getGameState() != GameState.LOGGED_IN || client.isMenuOpen())
+        if (!enabled || client.getGameState() != GameState.LOGGED_IN || client.isMenuOpen()
+            || !client.isWidgetSelected())
         {
             return;
         }
@@ -164,7 +165,7 @@ public class NotedItemUseProtectionFeature implements Feature
         }
 
         int itemId = selectedWidget.getItemId();
-        if (itemId <= 0 || !client.isWidgetSelected())
+        if (itemId <= 0)
         {
             return;
         }

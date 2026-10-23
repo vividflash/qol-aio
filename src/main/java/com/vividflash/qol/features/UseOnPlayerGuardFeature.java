@@ -27,6 +27,7 @@ package com.vividflash.qol.features;
 import com.vividflash.qol.QolConfig;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -73,6 +74,8 @@ public class UseOnPlayerGuardFeature implements Feature
     // re-checked on every client tick.
     private int whitelistItemId = -1;
     private boolean whitelistHit;
+    // Removed count last logged, so the per-tick filter logs only on change.
+    private int lastRemoved;
 
     @Override
     public void startUp()
@@ -91,7 +94,8 @@ public class UseOnPlayerGuardFeature implements Feature
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
-        if (QolConfig.GROUP.equals(event.getGroup()))
+        if (QolConfig.GROUP.equals(event.getGroup())
+            && ("useItemNoUsePlayer".equals(event.getKey()) || "noUsePlayerWhitelist".equals(event.getKey())))
         {
             reload();
         }
@@ -133,10 +137,18 @@ public class UseOnPlayerGuardFeature implements Feature
             }
         }
 
-        if (kept != entries.length)
+        int removed = entries.length - kept;
+        if (removed > 0)
         {
             menu.setMenuEntries(Arrays.copyOf(entries, kept));
-            log.debug("[useplayer] removed {} use-on-player entries for item {}", entries.length - kept, selectedItemId);
+        }
+        if (removed != lastRemoved)
+        {
+            lastRemoved = removed;
+            if (removed > 0)
+            {
+                log.debug("[useplayer] removed {} use-on-player entries for item {}", removed, selectedItemId);
+            }
         }
     }
 
@@ -168,7 +180,7 @@ public class UseOnPlayerGuardFeature implements Feature
         if (itemId != whitelistItemId)
         {
             ItemComposition item = client.getItemDefinition(itemId);
-            whitelistHit = item != null && whitelist.contains(item.getName().toLowerCase());
+            whitelistHit = item != null && whitelist.contains(item.getName().toLowerCase(Locale.ROOT));
             whitelistItemId = itemId;
         }
         return whitelistHit;
@@ -181,7 +193,7 @@ public class UseOnPlayerGuardFeature implements Feature
         whitelist = Arrays.stream(config.noUsePlayerWhitelist().split("[,\\r\\n]"))
             .map(String::trim)
             .filter(name -> !name.isEmpty())
-            .map(String::toLowerCase)
+            .map(name -> name.toLowerCase(Locale.ROOT))
             .collect(Collectors.toCollection(HashSet::new));
     }
 }

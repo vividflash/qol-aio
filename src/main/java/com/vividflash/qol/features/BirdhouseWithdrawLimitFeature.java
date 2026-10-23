@@ -157,13 +157,16 @@ public class BirdhouseWithdrawLimitFeature implements Feature
     @Override
     public void startUp()
     {
-        log.debug("[birdhouse] [config] equipmentLimit={} logsMax={} regular={} oak={} willow={} teak={} maple={} mahogany={} yew={} magic={} redwood={} blockMessages={}",
-            config.birdhouseEquipmentLimitEnabled(), config.birdhouseLogsMax(),
-            config.birdhouseLogsRegularEnabled(), config.birdhouseLogsOakEnabled(),
-            config.birdhouseLogsWillowEnabled(), config.birdhouseLogsTeakEnabled(),
-            config.birdhouseLogsMapleEnabled(), config.birdhouseLogsMahoganyEnabled(),
-            config.birdhouseLogsYewEnabled(), config.birdhouseLogsMagicEnabled(),
-            config.birdhouseLogsRedwoodEnabled(), config.showBlockMessages());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[birdhouse] [config] equipmentLimit={} logsMax={} regular={} oak={} willow={} teak={} maple={} mahogany={} yew={} magic={} redwood={} blockMessages={}",
+                config.birdhouseEquipmentLimitEnabled(), config.birdhouseLogsMax(),
+                config.birdhouseLogsRegularEnabled(), config.birdhouseLogsOakEnabled(),
+                config.birdhouseLogsWillowEnabled(), config.birdhouseLogsTeakEnabled(),
+                config.birdhouseLogsMapleEnabled(), config.birdhouseLogsMahoganyEnabled(),
+                config.birdhouseLogsYewEnabled(), config.birdhouseLogsMagicEnabled(),
+                config.birdhouseLogsRedwoodEnabled(), config.showBlockMessages());
+        }
         eventBus.register(this);
         // Nothing fires ItemContainerChanged until the next inventory change,
         // so starting up already logged in would count nothing carried.

@@ -138,10 +138,13 @@ public class SpellIngredientGuardFeature implements Feature
     @Override
     public void startUp()
     {
-        log.debug("[config] spellguard superglass={} sand={} seaweed={} sinister={} minBones={} demonic={} minAshes={}",
-            config.preventBadSuperglassMake(), config.superglassMakeSandAmount(), config.superglassMakeSeaweedAmount(),
-            config.preventBadSinisterOffering(), config.sinisterOfferingMinBones(),
-            config.preventBadDemonicOffering(), config.demonicOfferingMinAshes());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[config] spellguard superglass={} sand={} seaweed={} sinister={} minBones={} demonic={} minAshes={}",
+                config.preventBadSuperglassMake(), config.superglassMakeSandAmount(), config.superglassMakeSeaweedAmount(),
+                config.preventBadSinisterOffering(), config.sinisterOfferingMinBones(),
+                config.preventBadDemonicOffering(), config.demonicOfferingMinAshes());
+        }
         eventBus.register(this);
         // Nothing fires ItemContainerChanged until the next inventory change,
         // so starting up already logged in would count nothing carried.

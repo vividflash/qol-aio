@@ -25,6 +25,7 @@
 package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
+import java.util.Locale;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -48,16 +49,18 @@ import net.runelite.client.util.Text;
  * Region id 5782, from the Neypotzli map point (1440, 9632).
  *
  * Coverage is deliberately wider than a plain "teleport" option match: the
- * essence is only lost on actually LEAVING Neypotzli (or on death) - moving
+ * essence is only lost on actually LEAVING Neypotzli (or on death); moving
  * between its internal rooms is safe, so this must never touch anything but
  * genuine exit/teleport actions, and every check runs only inside that region.
  * Escape routes covered:
- *  - "Pass-through" - the dungeon exit itself.
- *  - Any option containing "teleport" - spells, scrolls (e.g. treasure-trail
+ *  - "Pass-through": the dungeon exit itself.
+ *  - Any option containing "teleport": scrolls (e.g. treasure-trail
  *    "X teleport" scrolls use a "Teleport" option) and worn items whose
  *    option says "Teleport".
+ *  - Spellbook teleports: the option is "Cast" and the spell name in the
+ *    target carries "teleport" (e.g. "Varrock Teleport").
  *  - Teleport tablets don't say "teleport" in the option, only in the item
- *    name (e.g. "Varrock teleport", "Teleport to house") - the option is
+ *    name (e.g. "Varrock teleport", "Teleport to house"). The option is
  *    always "Break", so it needs a name check.
  *  - Teleport jewellery (games necklace, ring of dueling, amulet of glory,
  *    skills necklace, ring of wealth, combat bracelet, xeric's talisman,
@@ -71,13 +74,17 @@ public class NeypotzliEssenceGuardFeature implements Feature
     private static final int NEYPOTZLI_REGION_ID = 5782;
 
     // Inventory activation option for teleport tablets/scrolls of this shape
-    // (e.g. "Varrock teleport", "Teleport to house") - matched by name since
+    // (e.g. "Varrock teleport", "Teleport to house"), matched by name since
     // the menu option itself is just "Break".
     private static final String TABLET_BREAK_OPTION = "break";
 
-    // Inventory activation option for teleport jewellery - matched by name
+    // Inventory activation option for teleport jewellery, matched by name
     // since the menu option itself is just "Rub".
     private static final String JEWELLERY_RUB_OPTION = "rub";
+
+    // Spellbook option for every spell, teleports included; the spell name is
+    // in the target.
+    private static final String SPELL_CAST_OPTION = "cast";
 
     // Known teleport jewellery names, matched case-insensitively so
     // charged/uncharged and (t)/(e) variants all hit.
@@ -109,8 +116,11 @@ public class NeypotzliEssenceGuardFeature implements Feature
     @Override
     public void startUp()
     {
-        log.debug("[neypotzli] [config] enabled={} threshold={} blockMessages={}",
-            config.preventEssenceLoss(), config.essenceLossThreshold(), config.showBlockMessages());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[neypotzli] [config] enabled={} threshold={} blockMessages={}",
+                config.preventEssenceLoss(), config.essenceLossThreshold(), config.showBlockMessages());
+        }
         eventBus.register(this);
     }
 
@@ -147,9 +157,15 @@ public class NeypotzliEssenceGuardFeature implements Feature
         }
 
         String option = Text.removeTags(event.getMenuOption());
-        boolean isTeleport = option.toLowerCase().contains("teleport");
+        boolean isTeleport = option.toLowerCase(Locale.ROOT).contains("teleport");
         boolean isPassThrough = "Pass-through".equalsIgnoreCase(option);
-        boolean isTeleportItem = (TABLET_BREAK_OPTION.equalsIgnoreCase(option) && isTeleportTablet(event.getMenuTarget()))
+        // A use-on cast ("High Level Alchemy -> Varrock teleport") names the
+        // spell before the arrow and the target item after it, so only a plain
+        // cast counts as a spellbook teleport.
+        boolean isTeleportSpell = SPELL_CAST_OPTION.equalsIgnoreCase(option)
+            && !event.getMenuTarget().contains("->") && isTeleportTablet(event.getMenuTarget());
+        boolean isTeleportItem = isTeleportSpell
+            || (TABLET_BREAK_OPTION.equalsIgnoreCase(option) && isTeleportTablet(event.getMenuTarget()))
             || (JEWELLERY_RUB_OPTION.equalsIgnoreCase(option) && isTeleportJewellery(event.getMenuTarget()));
         if (isTeleport || isPassThrough || isTeleportItem)
         {
@@ -164,9 +180,10 @@ public class NeypotzliEssenceGuardFeature implements Feature
     }
 
     // Tablets are named after their destination (e.g. "Varrock teleport",
-    // "Teleport to house") but are always activated with a plain "Break" -
+    // "Teleport to house") but are always activated with a plain "Break":
     // the option alone can't tell a teleport tablet apart from any other
     // breakable item, so the item name has to carry the signal instead.
+    // Spellbook teleports are read the same way from the "Cast" target.
     private boolean isTeleportTablet(String menuTarget)
     {
         // Every teleport tablet/scroll name spells out "teleport" in full
@@ -174,7 +191,7 @@ public class NeypotzliEssenceGuardFeature implements Feature
         // abbreviated "tele" naming to account for, so matching just the
         // full word avoids false positives on other "Break"-able items
         // (e.g. Expeditious bracelet, Amulet of chemistry).
-        String name = Text.removeTags(menuTarget).toLowerCase();
+        String name = Text.removeTags(menuTarget).toLowerCase(Locale.ROOT);
         return name.contains("teleport");
     }
 
@@ -182,7 +199,7 @@ public class NeypotzliEssenceGuardFeature implements Feature
     // so match against the known set of teleport-capable names instead.
     private boolean isTeleportJewellery(String menuTarget)
     {
-        String name = Text.removeTags(menuTarget).toLowerCase();
+        String name = Text.removeTags(menuTarget).toLowerCase(Locale.ROOT);
         for (String jewellery : TELEPORT_JEWELLERY_NAMES)
         {
             if (name.contains(jewellery))

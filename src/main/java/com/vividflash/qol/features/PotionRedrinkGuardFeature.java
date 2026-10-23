@@ -26,6 +26,7 @@ package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
 import java.util.Arrays;
+import java.util.Locale;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -169,7 +170,7 @@ public class PotionRedrinkGuardFeature implements Feature
         for (Item item : inventory.getItems())
         {
             if (item.getId() > 0
-                && boostedSkill(client.getItemDefinition(item.getId()).getName().toLowerCase()) != null)
+                && boostedSkill(client.getItemDefinition(item.getId()).getName().toLowerCase(Locale.ROOT)) != null)
             {
                 potionCarried = true;
                 return;
@@ -193,7 +194,7 @@ public class PotionRedrinkGuardFeature implements Feature
         if (!target.equals(lastDrinkTarget))
         {
             lastDrinkTarget = target;
-            lastDrinkSkill = boostedSkill(Text.removeTags(target).toLowerCase());
+            lastDrinkSkill = boostedSkill(Text.removeTags(target).toLowerCase(Locale.ROOT));
         }
         Skill skill = lastDrinkSkill;
         if (skill == null)

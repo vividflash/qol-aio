@@ -26,6 +26,7 @@ package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -66,9 +67,12 @@ public class WorldhopImplingFeature implements Feature
     public void startUp()
     {
         reload();
-        log.debug("[config] enabled={} types={} patterns={} showBlockMessages={}",
-            config.worldhopImplingGuard(), config.worldhopImplingTypes(), implingPatterns.size(),
-            config.showBlockMessages());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[config] enabled={} types={} patterns={} showBlockMessages={}",
+                config.worldhopImplingGuard(), config.worldhopImplingTypes(), implingPatterns.size(),
+                config.showBlockMessages());
+        }
         eventBus.register(this);
     }
 
@@ -81,7 +85,7 @@ public class WorldhopImplingFeature implements Feature
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
-        if (QolConfig.GROUP.equals(event.getGroup()))
+        if (QolConfig.GROUP.equals(event.getGroup()) && "worldhopImplingTypes".equals(event.getKey()))
         {
             reload();
         }
@@ -118,7 +122,7 @@ public class WorldhopImplingFeature implements Feature
             return false;
         }
 
-        String option = Text.removeTags(event.getMenuOption()).toLowerCase();
+        String option = Text.removeTags(event.getMenuOption()).toLowerCase(Locale.ROOT);
         // World-switcher list entries use "Switch"; the logout panel uses similar wording.
         return option.equals("switch") || option.startsWith("switch to") || option.contains("hop-to")
             || option.contains("world-hop");
@@ -139,7 +143,7 @@ public class WorldhopImplingFeature implements Feature
             {
                 continue;
             }
-            String lower = name.toLowerCase();
+            String lower = name.toLowerCase(Locale.ROOT);
             for (Pattern p : implingPatterns)
             {
                 if (p.matcher(lower).matches())

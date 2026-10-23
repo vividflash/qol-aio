@@ -26,6 +26,7 @@ package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
 import java.util.EnumMap;
+import java.util.Locale;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -88,7 +89,10 @@ public class ClueReminderFeature implements Feature
     public void startUp()
     {
         reminded.clear();
-        log.debug("[config] enabled={} threshold={}", config.clueReminder(), config.clueReminderThreshold());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[config] enabled={} threshold={}", config.clueReminder(), config.clueReminderThreshold());
+        }
         eventBus.register(this);
     }
 
@@ -119,7 +123,7 @@ public class ClueReminderFeature implements Feature
             {
                 client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
                     "[Clues] You're holding " + count + " " + tier.keyword
-                        + " clue scrolls - maybe knock some out.", null);
+                        + " clue scrolls, maybe knock some out.", null);
                 log.debug("[clue] reminder posted: tier={} count={} threshold={}", tier, count, threshold);
                 reminded.put(tier, true);
             }
@@ -153,7 +157,7 @@ public class ClueReminderFeature implements Feature
             {
                 continue;
             }
-            String lower = name.toLowerCase();
+            String lower = name.toLowerCase(Locale.ROOT);
             for (Tier tier : TIERS)
             {
                 if (lower.contains(tier.keyword))

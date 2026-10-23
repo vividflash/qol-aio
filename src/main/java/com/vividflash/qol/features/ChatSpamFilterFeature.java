@@ -28,6 +28,7 @@ import com.vividflash.qol.QolConfig;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -84,7 +85,10 @@ public class ChatSpamFilterFeature implements Feature
     {
         enabled = config.chatSpamFilterEnabled();
         phrases = parsePhrases(config.chatSpamFilterPhrases());
-        log.debug("[config] enabled={} phrases={}", config.chatSpamFilterEnabled(), config.chatSpamFilterPhrases());
+        if (log.isDebugEnabled())
+        {
+            log.debug("[config] enabled={} phrases={}", config.chatSpamFilterEnabled(), config.chatSpamFilterPhrases());
+        }
         eventBus.register(this);
     }
 
@@ -143,7 +147,7 @@ public class ChatSpamFilterFeature implements Feature
             return;
         }
 
-        String message = ((String) objectStack[objectStackSize - 1]).toLowerCase();
+        String message = ((String) objectStack[objectStackSize - 1]).toLowerCase(Locale.ROOT);
         boolean blocked = false;
         for (String phrase : phrases)
         {
@@ -169,7 +173,7 @@ public class ChatSpamFilterFeature implements Feature
             String trimmed = phrase.trim();
             if (!trimmed.isEmpty())
             {
-                out.add(trimmed.toLowerCase());
+                out.add(trimmed.toLowerCase(Locale.ROOT));
             }
         }
         return out.toArray(new String[0]);

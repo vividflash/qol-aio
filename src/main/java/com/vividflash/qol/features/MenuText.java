@@ -26,6 +26,7 @@ package com.vividflash.qol.features;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import net.runelite.api.Client;
 import net.runelite.api.Item;
@@ -82,7 +83,7 @@ final class MenuText
     /** Whole-string match with {@code *} standing in for any run of characters. */
     static Pattern glob(String glob)
     {
-        String[] segments = glob.toLowerCase().split("\\*", -1);
+        String[] segments = glob.toLowerCase(Locale.ROOT).split("\\*", -1);
         StringBuilder regex = new StringBuilder("^");
         for (int i = 0; i < segments.length; i++)
         {

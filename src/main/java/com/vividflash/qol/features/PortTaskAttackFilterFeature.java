@@ -64,10 +64,11 @@ import net.runelite.client.util.Text;
  * top-level view. Ashore, the DB table is never read and no menu is ever
  * touched.
  * <p>
- * The game's PortTask DB table (cached once per boarding) maps each task row
+ * The game's PortTask DB table (cached on the first boarding after startup;
+ * it is game cache data and does not change) maps each task row
  * to its bounty-target NPC ids; the five task-slot varbits hold the active row
  * ids (0 = empty slot). Only NPC ids that appear as a bounty target somewhere
- * in the table are ever filtered - that self-scopes the guard to sea bounty
+ * in the table are ever filtered, which self-scopes the guard to sea bounty
  * monsters, so Attack is untouched everywhere else. Fail-open: no cached
  * table, an unknown row id, or an empty target set means nothing is filtered.
  */
@@ -100,6 +101,9 @@ public class PortTaskAttackFilterFeature implements Feature
     // Targets of the currently held tasks.
     private final Set<Integer> activeTargetNpcIds = new HashSet<>();
     private boolean tableCached;
+    // Set on logout or hop, so the next account or world reads its own task
+    // slots before anything is filtered.
+    private boolean targetsStale;
     private int lastRemoved;
     private boolean enabled;
 
@@ -116,6 +120,7 @@ public class PortTaskAttackFilterFeature implements Feature
     {
         eventBus.unregister(this);
         tableCached = false;
+        targetsStale = false;
         targetsByTaskId.clear();
         allTargetNpcIds.clear();
         activeTargetNpcIds.clear();
@@ -133,21 +138,26 @@ public class PortTaskAttackFilterFeature implements Feature
     @Subscribe
     public void onGameStateChanged(GameStateChanged event)
     {
-        if (event.getGameState() == GameState.LOGGED_IN)
+        GameState state = event.getGameState();
+        if (state == GameState.LOGIN_SCREEN || state == GameState.HOPPING)
         {
-            // Re-cache defensively on every login/world-hop.
-            tableCached = false;
+            activeTargetNpcIds.clear();
+            targetsStale = true;
         }
     }
 
     @Subscribe
     public void onGameTick(GameTick tick)
     {
-        if (!tableCached && enabled
+        if ((!tableCached || targetsStale) && enabled
             && client.getGameState() == GameState.LOGGED_IN && onBoat())
         {
-            cacheTable();
+            if (!tableCached)
+            {
+                cacheTable();
+            }
             refreshActiveTargets();
+            targetsStale = false;
         }
     }
 
@@ -177,7 +187,8 @@ public class PortTaskAttackFilterFeature implements Feature
             return;
         }
 
-        if (!tableCached || allTargetNpcIds.isEmpty())
+        // Fail open until the table is read and the task slots are current.
+        if (!tableCached || targetsStale || allTargetNpcIds.isEmpty())
         {
             return;
         }
@@ -257,7 +268,8 @@ public class PortTaskAttackFilterFeature implements Feature
                 allTargetNpcIds.addAll(targets);
             }
         }
-        tableCached = true;
+        // An empty read is retried on the next boat tick.
+        tableCached = !allTargetNpcIds.isEmpty();
         log.debug("[porttask] table cached: {} tasks with targets, {} target npc ids", targetsByTaskId.size(), allTargetNpcIds.size());
     }
 
@@ -316,7 +328,7 @@ public class PortTaskAttackFilterFeature implements Feature
 
     private boolean isUntargetedBountyAttack(MenuEntry entry)
     {
-        if (!isNpcOption(entry) || !"attack".equalsIgnoreCase(Text.removeTags(entry.getOption())))
+        if (!isNpcOption(entry) || !"attack".equalsIgnoreCase(untagged(entry.getOption())))
         {
             return false;
         }
@@ -329,6 +341,12 @@ public class PortTaskAttackFilterFeature implements Feature
 
         int npcId = npc.getId();
         return allTargetNpcIds.contains(npcId) && !activeTargetNpcIds.contains(npcId);
+    }
+
+    /** Options rarely carry tags, so skip the copy when there are none. */
+    private static String untagged(String option)
+    {
+        return option.indexOf('<') >= 0 ? Text.removeTags(option) : option;
     }
 
     private static boolean isNpcOption(MenuEntry entry)

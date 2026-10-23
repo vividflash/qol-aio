@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.inject.Inject;
@@ -196,6 +197,10 @@ public class RequireToolFeature implements Feature
     private boolean requirePickaxe;
     private boolean requireFishing;
     private boolean harpoonBareHanded;
+
+    // Counts last logged, so the per-frame menu pass logs only on change.
+    private int lastRemoved;
+    private int lastDemoted;
 
     /** Fishing option to the tools that satisfy it, per the wiki's equipment table. */
     private static final Map<String, Set<Integer>> FISHING_TOOLS = buildFishingTools();
@@ -368,18 +373,32 @@ public class RequireToolFeature implements Feature
         }
 
         MenuEntry[] result = kept != null ? Arrays.copyOf(kept, entries.length - removed) : entries;
-        if (removed > 0)
+        if (removed != lastRemoved)
         {
-            log.debug("[tool] removed {} menu entries (axe={} pickaxe={} fishing={})",
-                removed, checkAxe, checkPickaxe, checkFishing);
+            lastRemoved = removed;
+            if (removed > 0)
+            {
+                log.debug("[tool] removed {} menu entries (axe={} pickaxe={} fishing={})",
+                    removed, checkAxe, checkPickaxe, checkFishing);
+            }
         }
 
+        int demotedCount = 0;
         if (harpoonToDemote != null)
         {
             MenuEntry[] demoted = demoteHarpoonEntries(result, harpoonToDemote);
             if (demoted != null)
             {
                 result = demoted;
+                demotedCount = harpoonToDemote.size();
+            }
+        }
+        if (demotedCount != lastDemoted)
+        {
+            lastDemoted = demotedCount;
+            if (demotedCount > 0)
+            {
+                log.debug("[tool] demoted {} harpoon entries below usable fishing option", demotedCount);
             }
         }
 
@@ -576,7 +595,6 @@ public class RequireToolFeature implements Feature
                 restSlot++;
             }
         }
-        log.debug("[tool] demoted {} harpoon entries below usable fishing option", demoteCount);
         return reordered;
     }
 
@@ -613,6 +631,6 @@ public class RequireToolFeature implements Feature
     /** Trees of any capitalisation, plus the tree-like objects the sets name. */
     private boolean isAxeTarget(String target, Set<String> overrides)
     {
-        return target.toLowerCase().contains("tree") || overrides.contains(target);
+        return target.toLowerCase(Locale.ROOT).contains("tree") || overrides.contains(target);
     }
 }
