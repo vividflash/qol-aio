@@ -135,49 +135,32 @@ public class TakeBeforeAttackFeature implements Feature
             return;
         }
 
-        boolean[] targetAttack = null;
-        int attackCount = 0;
+        // Menu entries render bottom-up (last = top). Moving Attack entries to
+        // the very front of the array puts them at the bottom of the menu,
+        // below "Walk here", so Take outranks them. One in-place pass keeps
+        // the order within both groups.
+        int attackSlot = 0;
         for (int i = 0; i < entries.length; i++)
         {
-            if (isTargetAttack(entries[i]))
+            MenuEntry entry = entries[i];
+            if (isTargetAttack(entry))
             {
-                if (targetAttack == null)
-                {
-                    targetAttack = new boolean[entries.length];
-                }
-                targetAttack[i] = true;
-                attackCount++;
+                System.arraycopy(entries, attackSlot, entries, attackSlot + 1, i - attackSlot);
+                entries[attackSlot++] = entry;
             }
         }
-        if (targetAttack == null)
+        int attackCount = attackSlot;
+        if (attackCount == 0)
         {
             attackMoved = false;
             return;
-        }
-
-        // Menu entries render bottom-up (last = top). Moving Attack entries to
-        // the very front of the array puts them at the bottom of the menu,
-        // below "Walk here", so Take outranks them.
-        MenuEntry[] reordered = new MenuEntry[entries.length];
-        int attackSlot = 0;
-        int restSlot = attackCount;
-        for (int i = 0; i < entries.length; i++)
-        {
-            if (targetAttack[i])
-            {
-                reordered[attackSlot++] = entries[i];
-            }
-            else
-            {
-                reordered[restSlot++] = entries[i];
-            }
         }
         if (!attackMoved)
         {
             attackMoved = true;
             log.debug("[takefirst] moved {} Attack entries below Walk here, menuSize={}", attackCount, entries.length);
         }
-        menu.setMenuEntries(reordered);
+        menu.setMenuEntries(entries);
     }
 
     private boolean isTargetAttack(MenuEntry entry)

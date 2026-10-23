@@ -140,10 +140,13 @@ public class InstanceExitGuardFeature implements Feature
         }
         // Spawn events for loot already on the floor have passed, so starting
         // up inside an instance reads the current scene once.
-        if (client.getGameState() == GameState.LOGGED_IN)
+        clientThread.invoke(() ->
         {
-            clientThread.invoke(this::primeGroundItems);
-        }
+            if (client.getGameState() == GameState.LOGGED_IN)
+            {
+                primeGroundItems();
+            }
+        });
     }
 
     private void primeGroundItems()

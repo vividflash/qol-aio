@@ -107,10 +107,13 @@ public class WithdrawLimitFeature implements Feature
         eventBus.register(this);
         // Nothing fires ItemContainerChanged until the next inventory change,
         // so starting up already logged in would count nothing carried.
-        if (client.getGameState() == GameState.LOGGED_IN)
+        clientThread.invoke(() ->
         {
-            clientThread.invoke(this::primeCounts);
-        }
+            if (client.getGameState() == GameState.LOGGED_IN)
+            {
+                primeCounts();
+            }
+        });
     }
 
     @Override
@@ -277,7 +280,10 @@ public class WithdrawLimitFeature implements Feature
         if (current >= limit)
         {
             event.consume();
-            log.debug("[withdraw] blocked withdraw of {} option={} current={} limit={}", itemName, event.getMenuOption(), current, limit);
+            if (log.isDebugEnabled())
+            {
+                log.debug("[withdraw] blocked withdraw of {} option={} current={} limit={}", itemName, event.getMenuOption(), current, limit);
+            }
             if (config.showBlockMessages())
             {
                 client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[" + prefix + "] Enough " + itemName + " already.", null);
@@ -290,7 +296,10 @@ public class WithdrawLimitFeature implements Feature
         if (requested > remaining)
         {
             event.consume();
-            log.debug("[withdraw] blocked oversized withdraw of {} option={} current={} limit={}", itemName, event.getMenuOption(), current, limit);
+            if (log.isDebugEnabled())
+            {
+                log.debug("[withdraw] blocked oversized withdraw of {} option={} current={} limit={}", itemName, event.getMenuOption(), current, limit);
+            }
             if (config.showBlockMessages())
             {
                 client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[" + prefix + "] Only " + remaining + " more " + itemName + " allowed.", null);
@@ -304,7 +313,10 @@ public class WithdrawLimitFeature implements Feature
         {
             requested = remaining;
         }
-        log.debug("[withdraw] allowed withdraw of {} option={} current={} limit={} counted={}", itemName, event.getMenuOption(), current, limit, requested);
+        if (log.isDebugEnabled())
+        {
+            log.debug("[withdraw] allowed withdraw of {} option={} current={} limit={} counted={}", itemName, event.getMenuOption(), current, limit, requested);
+        }
         trackedCounts.merge(itemId, requested, Integer::sum);
     }
 

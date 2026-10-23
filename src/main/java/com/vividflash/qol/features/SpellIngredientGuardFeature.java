@@ -148,10 +148,13 @@ public class SpellIngredientGuardFeature implements Feature
         eventBus.register(this);
         // Nothing fires ItemContainerChanged until the next inventory change,
         // so starting up already logged in would count nothing carried.
-        if (client.getGameState() == GameState.LOGGED_IN)
+        clientThread.invoke(() ->
         {
-            clientThread.invoke(this::primeCounts);
-        }
+            if (client.getGameState() == GameState.LOGGED_IN)
+            {
+                primeCounts();
+            }
+        });
     }
 
     /** The inventory is null until the player exists, hence the guard. */

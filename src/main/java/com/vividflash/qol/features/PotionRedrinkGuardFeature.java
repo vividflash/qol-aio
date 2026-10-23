@@ -25,7 +25,6 @@
 package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
-import java.util.Arrays;
 import java.util.Locale;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -66,9 +65,9 @@ public class PotionRedrinkGuardFeature implements Feature
     // Whether the inventory holds a guarded potion, kept from inventory
     // changes so the per-tick filter skips the menu read when there is none.
     private boolean potionCarried;
-    private boolean inventoryLoaded;
+    private volatile boolean inventoryLoaded;
     private boolean drinkHidden;
-    private boolean enabled;
+    private volatile boolean enabled;
     private int threshold;
     // Last Drink target and the skill it maps to, so a hovered potion is not
     // re-classified on every client tick.
@@ -95,7 +94,13 @@ public class PotionRedrinkGuardFeature implements Feature
     {
         if (QolConfig.GROUP.equals(event.getGroup()))
         {
+            boolean wasEnabled = enabled;
             loadConfig();
+            if (enabled && !wasEnabled)
+            {
+                // Inventory changes were skipped while off; onClientTick reloads.
+                inventoryLoaded = false;
+            }
         }
     }
 
@@ -108,7 +113,7 @@ public class PotionRedrinkGuardFeature implements Feature
     @Subscribe
     public void onItemContainerChanged(ItemContainerChanged event)
     {
-        if (event.getContainerId() == InventoryID.INV)
+        if (enabled && event.getContainerId() == InventoryID.INV)
         {
             loadInventory(event.getItemContainer());
         }
@@ -138,24 +143,21 @@ public class PotionRedrinkGuardFeature implements Feature
 
         Menu menu = client.getMenu();
         MenuEntry[] entries = menu.getMenuEntries();
-        int kept = 0;
-        for (MenuEntry entry : entries)
+        int removedCount = 0;
+        for (int i = entries.length - 1; i >= 0; i--)
         {
-            if (!shouldRemove(entry))
+            if (shouldRemove(entries[i]))
             {
-                entries[kept++] = entry;
+                menu.removeMenuEntry(entries[i]);
+                removedCount++;
             }
         }
 
-        boolean removed = kept != entries.length;
+        boolean removed = removedCount > 0;
         if (removed != drinkHidden)
         {
             drinkHidden = removed;
-            log.debug("[redrink] drink option hidden={} removedEntries={}", removed, entries.length - kept);
-        }
-        if (removed)
-        {
-            menu.setMenuEntries(Arrays.copyOf(entries, kept));
+            log.debug("[redrink] drink option hidden={} removedEntries={}", removed, removedCount);
         }
     }
 

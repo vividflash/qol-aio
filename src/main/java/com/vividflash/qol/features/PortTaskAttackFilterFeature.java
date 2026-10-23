@@ -25,7 +25,6 @@
 package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -168,6 +167,12 @@ public class PortTaskAttackFilterFeature implements Feature
         {
             if (event.getVarbitId() == varbit)
             {
+                if (!enabled || !tableCached)
+                {
+                    // onGameTick reads the slots once the filter can use them.
+                    targetsStale = true;
+                    return;
+                }
                 refreshActiveTargets();
                 return;
             }
@@ -195,19 +200,18 @@ public class PortTaskAttackFilterFeature implements Feature
 
         Menu menu = client.getMenu();
         MenuEntry[] entries = menu.getMenuEntries();
-        int kept = 0;
-        for (MenuEntry entry : entries)
+        int removed = 0;
+        for (int i = entries.length - 1; i >= 0; i--)
         {
-            if (!isUntargetedBountyAttack(entry))
+            if (isUntargetedBountyAttack(entries[i]))
             {
-                entries[kept++] = entry;
+                menu.removeMenuEntry(entries[i]);
+                removed++;
             }
         }
 
-        if (kept != entries.length)
+        if (removed > 0)
         {
-            menu.setMenuEntries(Arrays.copyOf(entries, kept));
-            int removed = entries.length - kept;
             if (removed != lastRemoved)
             {
                 log.debug("[porttask] removed {} Attack entries on untargeted bounty monsters", removed);

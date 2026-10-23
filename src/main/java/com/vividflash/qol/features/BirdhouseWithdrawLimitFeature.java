@@ -170,10 +170,13 @@ public class BirdhouseWithdrawLimitFeature implements Feature
         eventBus.register(this);
         // Nothing fires ItemContainerChanged until the next inventory change,
         // so starting up already logged in would count nothing carried.
-        if (client.getGameState() == GameState.LOGGED_IN)
+        clientThread.invoke(() ->
         {
-            clientThread.invoke(this::primeCounts);
-        }
+            if (client.getGameState() == GameState.LOGGED_IN)
+            {
+                primeCounts();
+            }
+        });
     }
 
     /** The inventory is null until the player exists, hence the guard. */
@@ -316,7 +319,10 @@ public class BirdhouseWithdrawLimitFeature implements Feature
         if (current >= limit)
         {
             event.consume();
-            log.debug("[birdhouse] blocked withdraw of {} option={} current={} limit={}", label, event.getMenuOption(), current, limit);
+            if (log.isDebugEnabled())
+            {
+                log.debug("[birdhouse] blocked withdraw of {} option={} current={} limit={}", label, event.getMenuOption(), current, limit);
+            }
             if (config.showBlockMessages())
             {
                 client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[WL: Fossil Island] Enough " + label + " already.", null);

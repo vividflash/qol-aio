@@ -124,12 +124,18 @@ public class ClueReminderFeature implements Feature
                 client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
                     "[Clues] You're holding " + count + " " + tier.keyword
                         + " clue scrolls, maybe knock some out.", null);
-                log.debug("[clue] reminder posted: tier={} count={} threshold={}", tier, count, threshold);
+                if (log.isDebugEnabled())
+                {
+                    log.debug("[clue] reminder posted: tier={} count={} threshold={}", tier, count, threshold);
+                }
                 reminded.put(tier, true);
             }
             else if (count < threshold && alreadyReminded)
             {
-                log.debug("[clue] reminder re-armed: tier={} count={} threshold={}", tier, count, threshold);
+                if (log.isDebugEnabled())
+                {
+                    log.debug("[clue] reminder re-armed: tier={} count={} threshold={}", tier, count, threshold);
+                }
                 reminded.put(tier, false);
             }
         }

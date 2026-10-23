@@ -134,9 +134,9 @@ public class SoundEffectMutesFeature implements Feature
     private static final int[] NONE = new int[0];
 
     /** Sorted muted sound ids, rebuilt on config change. */
-    private int[] muted = NONE;
-    private boolean othersOnly;
-    private boolean wildernessExempt;
+    private volatile int[] muted = NONE;
+    private volatile boolean othersOnly;
+    private volatile boolean wildernessExempt;
 
     @Inject
     private Client client;
@@ -215,7 +215,8 @@ public class SoundEffectMutesFeature implements Feature
 
     private boolean isMuted(int soundId)
     {
-        return muted.length != 0 && Arrays.binarySearch(muted, soundId) >= 0;
+        int[] ids = muted;
+        return ids.length != 0 && Arrays.binarySearch(ids, soundId) >= 0;
     }
 
     private boolean isOtherPlayer(Actor source)

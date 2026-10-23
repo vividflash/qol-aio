@@ -25,7 +25,6 @@
 package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -125,6 +124,11 @@ public class NotedItemUseProtectionFeature implements Feature
     private boolean tablesEnabled;
     private int lastRemoved;
 
+    // Eligibility of the last selected item, so a held selection does not
+    // look up its item definition on every client tick.
+    private int eligibleItemId = -1;
+    private boolean itemEligible;
+
     @Override
     public void startUp()
     {
@@ -173,31 +177,35 @@ public class NotedItemUseProtectionFeature implements Feature
             return;
         }
 
-        if (!isEligibleItem(client.getItemDefinition(itemId)))
+        if (itemId != eligibleItemId)
+        {
+            itemEligible = isEligibleItem(client.getItemDefinition(itemId));
+            eligibleItemId = itemId;
+        }
+        if (!itemEligible)
         {
             return;
         }
 
         Menu menu = client.getMenu();
         MenuEntry[] entries = menu.getMenuEntries();
-        int kept = 0;
-        for (MenuEntry entry : entries)
+        int removed = 0;
+        for (int i = entries.length - 1; i >= 0; i--)
         {
-            if (isAllowedUseTarget(entry))
+            if (!isAllowedUseTarget(entries[i]))
             {
-                entries[kept++] = entry;
+                menu.removeMenuEntry(entries[i]);
+                removed++;
             }
         }
 
-        if (kept != entries.length)
+        if (removed > 0 && removed != lastRemoved)
         {
-            menu.setMenuEntries(Arrays.copyOf(entries, kept));
-            int removed = entries.length - kept;
-            if (removed != lastRemoved)
+            if (log.isDebugEnabled())
             {
-                log.debug("[noted] stripped {} menu entries for noted item {} ({} kept)", removed, itemId, kept);
-                lastRemoved = removed;
+                log.debug("[noted] stripped {} menu entries for noted item {} ({} kept)", removed, itemId, entries.length - removed);
             }
+            lastRemoved = removed;
         }
     }
 

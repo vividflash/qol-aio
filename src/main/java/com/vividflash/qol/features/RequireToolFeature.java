@@ -240,10 +240,13 @@ public class RequireToolFeature implements Feature
         // Nothing fires ItemContainerChanged until the next inventory or gear
         // change, so starting up already logged in would leave both caches
         // empty and the guard would act as though you carry nothing.
-        if (client.getGameState() == GameState.LOGGED_IN)
+        clientThread.invoke(() ->
         {
-            clientThread.invoke(this::primeItemCaches);
-        }
+            if (client.getGameState() == GameState.LOGGED_IN)
+            {
+                primeItemCaches();
+            }
+        });
     }
 
     @Subscribe
@@ -387,7 +390,7 @@ public class RequireToolFeature implements Feature
         if (removed != lastRemoved)
         {
             lastRemoved = removed;
-            if (removed > 0)
+            if (removed > 0 && log.isDebugEnabled())
             {
                 log.debug("[tool] removed {} menu entries (axe={} pickaxe={} fishing={})",
                     removed, checkAxe, checkPickaxe, checkFishing);

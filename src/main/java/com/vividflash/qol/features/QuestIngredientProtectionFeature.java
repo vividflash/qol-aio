@@ -25,7 +25,6 @@
 package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
-import java.util.Arrays;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -98,9 +97,9 @@ public class QuestIngredientProtectionFeature implements Feature
     // Whether the inventory holds a guarded quest item, kept from inventory
     // changes so the per-tick filter skips the menu read when there is none.
     private boolean questFoodCarried;
-    private boolean inventoryLoaded;
+    private volatile boolean inventoryLoaded;
     private boolean consumeHidden;
-    private boolean enabled;
+    private volatile boolean enabled;
 
     @Override
     public void startUp()
@@ -122,14 +121,20 @@ public class QuestIngredientProtectionFeature implements Feature
     {
         if (QolConfig.GROUP.equals(event.getGroup()))
         {
+            boolean wasEnabled = enabled;
             enabled = config.questFoodGuard();
+            if (enabled && !wasEnabled)
+            {
+                // Inventory changes were skipped while off; onClientTick reloads.
+                inventoryLoaded = false;
+            }
         }
     }
 
     @Subscribe
     public void onItemContainerChanged(ItemContainerChanged event)
     {
-        if (event.getContainerId() == InventoryID.INV)
+        if (enabled && event.getContainerId() == InventoryID.INV)
         {
             loadInventory(event.getItemContainer());
         }
@@ -159,24 +164,22 @@ public class QuestIngredientProtectionFeature implements Feature
 
         Menu menu = client.getMenu();
         MenuEntry[] entries = menu.getMenuEntries();
-        int kept = 0;
-        for (MenuEntry entry : entries)
+        int removedCount = 0;
+        for (int i = entries.length - 1; i >= 0; i--)
         {
-            if (!(isConsumeOption(entry.getOption()) && QUEST_FOOD_ITEMS.contains(entry.getItemId())))
+            MenuEntry entry = entries[i];
+            if (isConsumeOption(entry.getOption()) && QUEST_FOOD_ITEMS.contains(entry.getItemId()))
             {
-                entries[kept++] = entry;
+                menu.removeMenuEntry(entry);
+                removedCount++;
             }
         }
 
-        boolean removed = kept != entries.length;
+        boolean removed = removedCount > 0;
         if (removed != consumeHidden)
         {
             consumeHidden = removed;
-            log.debug("[questfood] eat/drink option hidden={} removedEntries={}", removed, entries.length - kept);
-        }
-        if (removed)
-        {
-            menu.setMenuEntries(Arrays.copyOf(entries, kept));
+            log.debug("[questfood] eat/drink option hidden={} removedEntries={}", removed, removedCount);
         }
     }
 

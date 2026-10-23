@@ -170,8 +170,11 @@ public class NeypotzliEssenceGuardFeature implements Feature
         if (isTeleport || isPassThrough || isTeleportItem)
         {
             event.consume();
-            log.debug("[neypotzli] blocked exit option={} target={} essence={} teleport={} passThrough={} teleportItem={}",
-                option, Text.removeTags(event.getMenuTarget()), essence, isTeleport, isPassThrough, isTeleportItem);
+            if (log.isDebugEnabled())
+            {
+                log.debug("[neypotzli] blocked exit option={} target={} essence={} teleport={} passThrough={} teleportItem={}",
+                    option, Text.removeTags(event.getMenuTarget()), essence, isTeleport, isPassThrough, isTeleportItem);
+            }
             if (config.showBlockMessages())
             {
                 client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[Neypotzli] " + essence + " sulphurous essence would fizzle away if you left now.", null);

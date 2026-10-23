@@ -129,20 +129,16 @@ public class UseOnPlayerGuardFeature implements Feature
 
         Menu menu = client.getMenu();
         MenuEntry[] entries = menu.getMenuEntries();
-        int kept = 0;
-        for (MenuEntry entry : entries)
+        int removed = 0;
+        for (int i = entries.length - 1; i >= 0; i--)
         {
-            if (entry.getType() != MenuAction.WIDGET_TARGET_ON_PLAYER)
+            if (entries[i].getType() == MenuAction.WIDGET_TARGET_ON_PLAYER)
             {
-                entries[kept++] = entry;
+                menu.removeMenuEntry(entries[i]);
+                removed++;
             }
         }
 
-        int removed = entries.length - kept;
-        if (removed > 0)
-        {
-            menu.setMenuEntries(Arrays.copyOf(entries, kept));
-        }
         if (removed != lastRemoved)
         {
             lastRemoved = removed;

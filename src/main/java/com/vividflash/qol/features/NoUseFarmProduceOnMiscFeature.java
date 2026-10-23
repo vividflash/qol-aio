@@ -25,7 +25,6 @@
 package com.vividflash.qol.features;
 
 import com.vividflash.qol.QolConfig;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -154,24 +153,21 @@ public class NoUseFarmProduceOnMiscFeature implements Feature
 
         Menu menu = client.getMenu();
         MenuEntry[] entries = menu.getMenuEntries();
-        int kept = 0;
-        for (MenuEntry entry : entries)
+        int removedCount = 0;
+        for (int i = entries.length - 1; i >= 0; i--)
         {
-            if (!isBlockedTarget(entry, rule))
+            if (isBlockedTarget(entries[i], rule))
             {
-                entries[kept++] = entry;
+                menu.removeMenuEntry(entries[i]);
+                removedCount++;
             }
         }
 
-        boolean removed = kept != entries.length;
+        boolean removed = removedCount > 0;
         if (removed != entriesHidden)
         {
             entriesHidden = removed;
-            log.debug("[farmuse] use-on-patch entries hidden={} removedEntries={}", removed, entries.length - kept);
-        }
-        if (removed)
-        {
-            menu.setMenuEntries(Arrays.copyOf(entries, kept));
+            log.debug("[farmuse] use-on-patch entries hidden={} removedEntries={}", removed, removedCount);
         }
     }
 

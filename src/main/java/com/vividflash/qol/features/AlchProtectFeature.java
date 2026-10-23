@@ -106,10 +106,10 @@ public class AlchProtectFeature implements Feature
     private boolean hidePending;
 
     // Config cached on start and on change; read on every inventory redraw.
-    private boolean enabled;
-    private boolean protectUntradeables;
-    private boolean protectCollectionLog;
-    private Set<String> protectList = new HashSet<>();
+    private volatile boolean enabled;
+    private volatile boolean protectUntradeables;
+    private volatile boolean protectCollectionLog;
+    private volatile Set<String> protectList = new HashSet<>();
 
     // Populated once from the cache on the client thread; unnoted item ids only.
     private Set<Integer> collectionLogItemIds = null;
@@ -128,10 +128,13 @@ public class AlchProtectFeature implements Feature
         }
         eventBus.register(this);
         // If the plugin starts while already logged in, the cache is available now.
-        if (client.getGameState() == GameState.LOGGED_IN)
+        clientThread.invoke(() ->
         {
-            clientThread.invoke(this::buildCollectionLogSet);
-        }
+            if (client.getGameState() == GameState.LOGGED_IN)
+            {
+                buildCollectionLogSet();
+            }
+        });
     }
 
     @Override
@@ -183,9 +186,12 @@ public class AlchProtectFeature implements Feature
         enabled = config.alchProtect();
         if (!enabled)
         {
-            log.debug("[alch] feature switched off, releasing {} hidden slots", hiddenItems.size());
-            mode = AlchMode.NONE;
-            showHidden();
+            clientThread.invoke(() ->
+            {
+                log.debug("[alch] feature switched off, releasing {} hidden slots", hiddenItems.size());
+                mode = AlchMode.NONE;
+                showHidden();
+            });
         }
     }
 

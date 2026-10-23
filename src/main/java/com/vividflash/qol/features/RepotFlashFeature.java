@@ -195,10 +195,13 @@ public class RepotFlashFeature implements Feature
         overlayManager.add(inventoryOverlay);
         // Varbits only fire on change, so starting up logged in would miss a
         // running effect until its next pulse and read 0 absorption points.
-        if (client.getGameState() == GameState.LOGGED_IN)
+        clientThread.invoke(() ->
         {
-            clientThread.invoke(this::primeEffects);
-        }
+            if (client.getGameState() == GameState.LOGGED_IN)
+            {
+                primeEffects();
+            }
+        });
     }
 
     private void loadConfig()
@@ -510,8 +513,11 @@ public class RepotFlashFeature implements Feature
             if (state.active)
             {
                 state.expiredAtTick = client.getTickCount();
-                log.debug("[repot] {} expired at tick {}, grace {} ticks", effect, state.expiredAtTick,
-                    graceTicks);
+                if (log.isDebugEnabled())
+                {
+                    log.debug("[repot] {} expired at tick {}, grace {} ticks", effect, state.expiredAtTick,
+                        graceTicks);
+                }
             }
             state.active = false;
             state.pulsesLeft = 0;

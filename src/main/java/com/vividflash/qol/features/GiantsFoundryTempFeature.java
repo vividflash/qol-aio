@@ -43,6 +43,7 @@ import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.gameval.SpriteID;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.eventbus.EventBus;
@@ -79,9 +80,9 @@ import net.runelite.client.util.Text;
 public class GiantsFoundryTempFeature implements Feature
 {
     // The three stage bars double as the low/med/high heat-band reference widgets.
-    private static final int SPRITE_TRIP_HAMMER = 4442;
-    private static final int SPRITE_GRINDSTONE = 4443;
-    private static final int SPRITE_POLISHING_WHEEL = 4444;
+    private static final int SPRITE_TRIP_HAMMER = SpriteID.GiantsFoundryToolIcon._0;
+    private static final int SPRITE_GRINDSTONE = SpriteID.GiantsFoundryToolIcon._1;
+    private static final int SPRITE_POLISHING_WHEEL = SpriteID.GiantsFoundryToolIcon._2;
 
     // Bonus ("sweetspot") window: SWEETSPOT_LAYER child(0) glows this colour while open.
     private static final int BONUS_ACTIVE_TEXT_COLOR = 0xFCD703;
@@ -147,7 +148,7 @@ public class GiantsFoundryTempFeature implements Feature
     private boolean hudLoaded;
 
     // foundryOverworkGuard, cached for the per-tick check.
-    private boolean overworkGuard;
+    private volatile boolean overworkGuard;
 
     @Override
     public void startUp()
@@ -286,8 +287,11 @@ public class GiantsFoundryTempFeature implements Feature
             if (current != stage.band)
             {
                 event.consume();
-                log.debug("[foundry] consumed '{}' click: stage={} needs band={} but preform is in band={}",
-                    option, stage, stage.band, current);
+                if (log.isDebugEnabled())
+                {
+                    log.debug("[foundry] consumed '{}' click: stage={} needs band={} but preform is in band={}",
+                        option, stage, stage.band, current);
+                }
                 if (config.showBlockMessages())
                 {
                     client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
