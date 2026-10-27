@@ -52,16 +52,13 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.util.Text;
 
-/**
- * "Noted item Use protection": when a noted item is selected, strips the "Use" option on
- * everything except bank-related targets, so you can't misclick-use a noted
- * item on the wrong thing. Covers the named service NPCs, GE booth/table
- * allowance, a free-text custom list, and treats looting bag/rune pouch notes
- * as eligible trigger items.
- *
- * <p>An object the scene lookup cannot resolve keeps its entry, so an unreadable
- * scene widens what stays clickable instead of narrowing it.</p>
- */
+// "Noted item Use protection": when a noted item is selected, strips the "Use" option on everything
+// except bank-related targets, so you can't misclick-use a noted item on the wrong thing. Covers
+// the named service NPCs, GE booth/table allowance, a free-text custom list, and treats looting
+// bag/rune pouch notes as eligible trigger items.
+//
+// An object the scene lookup cannot resolve keeps its entry, so an unreadable scene widens what
+// stays clickable instead of narrowing it.
 @Slf4j
 @Singleton
 public class NotedItemUseProtectionFeature implements Feature
@@ -250,12 +247,10 @@ public class NotedItemUseProtectionFeature implements Feature
         return true;
     }
 
-    /**
-     * The scene object a menu entry's coordinates point at, or null when it cannot be
-     * addressed. getTiles() is the 104-wide array, while an extended scene runs to 184
-     * and a menu entry can belong to a world view whose coordinates do not index this
-     * scene at all, so the indices are range-checked before use.
-     */
+    // The scene object a menu entry's coordinates point at, or null when it cannot be addressed.
+    // getTiles() is the 104-wide array, while an extended scene runs to 184 and a menu entry can
+    // belong to a world view whose coordinates do not index this scene at all, so the indices are
+    // range-checked before use.
     private TileObject locateTileObject(int sceneX, int sceneY, int objectId)
     {
         WorldView worldView = client.getTopLevelWorldView();
@@ -331,11 +326,8 @@ public class NotedItemUseProtectionFeature implements Feature
         return false;
     }
 
-    /**
-     * The toggles and the custom allow-list, read once per config change: they
-     * are used for every menu entry on every tick, which is no place to call the
-     * config proxy or re-split a string.
-     */
+    // The toggles and the custom allow-list, read once per config change: they are used for every
+    // menu entry on every tick, which is no place to call the config proxy or re-split a string.
     private void reload()
     {
         enabled = config.easyUnnote();
@@ -378,11 +370,9 @@ public class NotedItemUseProtectionFeature implements Feature
         return toggled != null ? toggled : hasBankAction(resolved.getActions());
     }
 
-    /**
-     * GE booths and bank tables/counters answer to their own toggle and nothing
-     * else: with the toggle off they stay blocked even though most of them do
-     * carry a "Bank" action. Null means the object is in neither family.
-     */
+    // GE booths and bank tables/counters answer to their own toggle and nothing else: with the
+    // toggle off they stay blocked even though most of them do carry a "Bank" action. Null means
+    // the object is in neither family.
     private Boolean toggledFamily(String name)
     {
         if ("Grand Exchange booth".equalsIgnoreCase(name))
@@ -396,7 +386,7 @@ public class NotedItemUseProtectionFeature implements Feature
         return null;
     }
 
-    /** Objects that swap form by varbit (open/closed booths, etc.). */
+    // Objects that swap form by varbit (open/closed booths, etc.).
     private ObjectComposition resolveImpostor(ObjectComposition object)
     {
         if (object.getImpostorIds() == null)

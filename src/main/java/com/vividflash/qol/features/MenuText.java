@@ -35,21 +35,19 @@ import net.runelite.api.ItemContainer;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.VarbitID;
 
-/**
- * Menu and config string handling shared by the features: wildcard list
- * parsing, combat-level stripping, and bank option parsing.
- */
+// Menu and config string handling shared by the features: wildcard list parsing, combat-level
+// stripping, and bank option parsing.
 final class MenuText
 {
-    /** Combat level suffix on an NPC menu target, e.g. "Guard  (level-21)". */
+    // Combat level suffix on an NPC menu target, e.g. "Guard (level-21)".
     private static final String LEVEL_MARKER = "(level";
 
     private static final String WITHDRAW_PREFIX = "withdraw";
 
-    /** Prefix of a numbered bank withdraw option, e.g. "Withdraw-10". */
+    // Prefix of a numbered bank withdraw option, e.g. "Withdraw-10".
     private static final String NUMBERED_WITHDRAW_PREFIX = "withdraw-";
 
-    /** Returned by {@link #withdrawAmount} when the bank or inventory cannot be read. */
+    // Returned by withdrawAmount when the bank or inventory cannot be read.
     static final int UNKNOWN_AMOUNT = Integer.MAX_VALUE;
 
     private static final int INVENTORY_SLOTS = 28;
@@ -58,16 +56,14 @@ final class MenuText
     {
     }
 
-    /**
-     * Compiles a comma or newline separated list into whole-string patterns.
-     * Entries are lower-cased, so match against a lower-cased value.
-     */
+    // Compiles a comma or newline separated list into whole-string patterns. Entries are
+    // lower-cased, so match against a lower-cased value.
     static List<Pattern> globList(String csv)
     {
         return globList(csv, 0);
     }
 
-    /** {@link #globList(String)} with extra {@link Pattern} flags, e.g. CASE_INSENSITIVE. */
+    // globList(String) with extra Pattern flags, e.g. CASE_INSENSITIVE.
     static List<Pattern> globList(String csv, int flags)
     {
         List<Pattern> patterns = new ArrayList<>();
@@ -86,7 +82,7 @@ final class MenuText
         return patterns;
     }
 
-    /** Whole-string match with {@code *} standing in for any run of characters. */
+    // Whole-string match with * standing in for any run of characters.
     private static Pattern glob(String glob, int flags)
     {
         String[] segments = glob.toLowerCase(Locale.ROOT).split("\\*", -1);
@@ -121,28 +117,24 @@ final class MenuText
         return false;
     }
 
-    /**
-     * Drops the trailing combat level the client appends to NPC menu targets,
-     * so a name lookup sees "master farmer" rather than "master farmer  (level-79)".
-     * Takes an already tag-stripped, lower-cased target.
-     */
+    // Drops the trailing combat level the client appends to NPC menu targets, so a name lookup sees
+    // "master farmer" rather than "master farmer (level-79)". Takes an already tag-stripped,
+    // lower-cased target.
     static String stripCombatLevel(String target)
     {
         int marker = target.indexOf(LEVEL_MARKER);
         return marker >= 0 ? target.substring(0, marker).trim() : target;
     }
 
-    /** True for the bank's withdraw options and nothing else on that widget. */
+    // True for the bank's withdraw options and nothing else on that widget.
     static boolean isWithdrawOption(String option)
     {
         return option != null && option.regionMatches(true, 0, WITHDRAW_PREFIX, 0, WITHDRAW_PREFIX.length());
     }
 
-    /**
-     * How many items a bank withdraw option asks for, or -1 when the option
-     * carries no number: "Withdraw-All", "Withdraw-All-but-1" and the
-     * "Withdraw-X" prompt, whose amount is typed after the click.
-     */
+    // How many items a bank withdraw option asks for, or -1 when the option carries no number:
+    // "Withdraw-All", "Withdraw-All-but-1" and the "Withdraw-X" prompt, whose amount is typed after
+    // the click.
     static int withdrawQuantity(String option)
     {
         int start = NUMBERED_WITHDRAW_PREFIX.length();
@@ -164,14 +156,11 @@ final class MenuText
         return quantity;
     }
 
-    /**
-     * How many items a bank withdraw click takes out. A numbered option counts
-     * as its number. "Withdraw-All" and "Withdraw-All-but-1" count what the
-     * bank holds (less one), limited by free inventory slots unless the item
-     * stacks or comes out as a note. Returns -1 for the "Withdraw-X" prompt,
-     * whose amount is typed after the click, and {@link #UNKNOWN_AMOUNT} when
-     * the bank or inventory cannot be read. Call on the client thread.
-     */
+    // How many items a bank withdraw click takes out. A numbered option counts as its number.
+    // "Withdraw-All" and "Withdraw-All-but-1" count what the bank holds (less one), limited by free
+    // inventory slots unless the item stacks or comes out as a note. Returns -1 for the
+    // "Withdraw-X" prompt, whose amount is typed after the click, and UNKNOWN_AMOUNT when the bank
+    // or inventory cannot be read. Call on the client thread.
     static int withdrawAmount(Client client, int itemId, String option)
     {
         int quantity = withdrawQuantity(option);

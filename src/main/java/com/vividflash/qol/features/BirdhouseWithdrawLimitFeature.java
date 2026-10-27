@@ -46,27 +46,22 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 
-/**
- * Fossil Island birdhouse trip loadout: caps the one-off equipment (Chisel,
- * Hammer, Digsite pendant, Clockwork) at 1 each under one shared toggle, and
- * caps each birdhouse log type independently (own toggle, shared max amount).
- *
- * A tool variant shares its base tool's cap, since either one does the job
- * and carrying both is the misclick: a jeweller's chisel counts as a chisel,
- * an Imcando hammer as a hammer, the offhand version included. The broken
- * Imcando is left out: it does nothing until repaired, and it is not
- * something normally kept in the bank.
- *
- * The clockwork cap is 1 regardless of the log amount: the placed houses
- * each already hold their own mechanism, so a run carries one spare to craft
- * the next house between spots.
- *
- * Counts are tracked via ItemContainerChanged rather than read live from the
- * widget, since a live read lags a tick behind the click and lets repeated
- * withdrawals slip past the cap. A numbered or Withdraw-All option that
- * takes out more than is left under the cap is blocked, so a cap is never
- * overshot.
- */
+// Fossil Island birdhouse trip loadout: caps the one-off equipment (Chisel, Hammer, Digsite
+// pendant, Clockwork) at 1 each under one shared toggle, and caps each birdhouse log type
+// independently (own toggle, shared max amount).
+//
+// A tool variant shares its base tool's cap, since either one does the job and carrying both is the
+// misclick: a jeweller's chisel counts as a chisel, an Imcando hammer as a hammer, the offhand
+// version included. The broken Imcando is left out: it does nothing until repaired, and it is not
+// something normally kept in the bank.
+//
+// The clockwork cap is 1 regardless of the log amount: the placed houses each already hold their
+// own mechanism, so a run carries one spare to craft the next house between spots.
+//
+// Counts are tracked via ItemContainerChanged rather than read live from the widget, since a live
+// read lags a tick behind the click and lets repeated withdrawals slip past the cap. A numbered or
+// Withdraw-All option that takes out more than is left under the cap is blocked, so a cap is never
+// overshot.
 @Slf4j
 @Singleton
 public class BirdhouseWithdrawLimitFeature implements Feature
@@ -106,10 +101,8 @@ public class BirdhouseWithdrawLimitFeature implements Feature
     private final Set<Integer> trackedItems = new HashSet<>();
     private final Map<Integer, Integer> trackedCounts = new HashMap<>();
 
-    /**
-     * Noted id to unnoted id for the tracked items, so a withdraw-as-note
-     * stack counts toward the same cap. Built on first use, on the client thread.
-     */
+    // Noted id to unnoted id for the tracked items, so a withdraw-as-note stack counts toward the
+    // same cap. Built on first use, on the client thread.
     private Map<Integer, Integer> notedToBase;
 
     @Inject
@@ -179,7 +172,7 @@ public class BirdhouseWithdrawLimitFeature implements Feature
         });
     }
 
-    /** The inventory is null until the player exists, hence the guard. */
+    // The inventory is null until the player exists, hence the guard.
     private void primeCounts()
     {
         ItemContainer inventory = client.getItemContainer(InventoryID.INV);

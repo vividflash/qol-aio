@@ -44,11 +44,9 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.util.Text;
 
-/**
- * "Potion re-drink guard": removes the "Drink" option on a stat-boost potion while
- * the skill it boosts is still comfortably above base level, so you don't waste
- * a dose re-potting too early. Name-keyed so no potion item IDs are hardcoded.
- */
+// "Potion re-drink guard": removes the "Drink" option on a stat-boost potion while the skill it
+// boosts is still comfortably above base level, so you don't waste a dose re-potting too early.
+// Name-keyed so no potion item IDs are hardcoded.
 @Slf4j
 @Singleton
 public class PotionRedrinkGuardFeature implements Feature
@@ -210,11 +208,9 @@ public class PotionRedrinkGuardFeature implements Feature
         return boosted - real >= threshold;
     }
 
-    /**
-     * Maps a potion name to the single skill it boosts, for the potions where a
-     * single-skill boost makes early re-potting a clear waste. Combo potions that
-     * boost several skills are intentionally left out (ambiguous).
-     */
+    // Maps a potion name to the single skill it boosts, for the potions where a single-skill boost
+    // makes early re-potting a clear waste. Combo potions that boost several skills are
+    // intentionally left out (ambiguous).
     private Skill boostedSkill(String name)
     {
         if (name.contains("ranging potion") || name.contains("bastion") || name.contains("divine ranging")

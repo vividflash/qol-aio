@@ -44,23 +44,19 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.api.events.ClientTick;
 import net.runelite.client.util.Text;
 
-/**
- * Removes "Use [farm produce] -&gt; farming patch / stone" menu entries.
- * The Ardougne tool leprechaun stands on a stone, so at some camera angles
- * the note-your-produce click lands on the stone (or the patch beside him)
- * instead of the leprechaun; the misclick just walks you over and fizzles,
- * so nothing is lost, but removing the entries stops the pointless walk and
- * cuts menu clutter. Menu-removal style: silent, no chat feedback.
- *
- * <p>Saplings get their own rule: they are the one produce-shaped item that IS
- * legitimately Use'd on a patch (planting), so the patch/stone rule exempts
- * them, and instead "&lt;x&gt; sapling" is blocked on decorative scenery from the
- * configurable list. The default is the Daisies beside Lletya's fruit tree
- * patch, which catch the planting click at some camera angles.</p>
- *
- * <p>Detection is name-based (produce list config + object-name keywords) so it
- * needs no hardcoded patch object IDs, which vary per patch across the game.</p>
- */
+// Removes "Use [farm produce] -> farming patch / stone" menu entries. The Ardougne tool leprechaun
+// stands on a stone, so at some camera angles the note-your-produce click lands on the stone (or
+// the patch beside him) instead of the leprechaun; the misclick just walks you over and fizzles, so
+// nothing is lost, but removing the entries stops the pointless walk and cuts menu clutter.
+// Menu-removal style: silent, no chat feedback.
+//
+// Saplings get their own rule: they are the one produce-shaped item that IS legitimately Use'd on a
+// patch (planting), so the patch/stone rule exempts them, and instead "<x> sapling" is blocked on
+// decorative scenery from the configurable list. The default is the Daisies beside Lletya's fruit
+// tree patch, which catch the planting click at some camera angles.
+//
+// Detection is name-based (produce list config + object-name keywords) so it needs no hardcoded
+// patch object IDs, which vary per patch across the game.
 @Slf4j
 @Singleton
 public class NoUseFarmProduceOnMiscFeature implements Feature
@@ -171,10 +167,8 @@ public class NoUseFarmProduceOnMiscFeature implements Feature
         }
     }
 
-    /**
-     * Which rule the selected inventory item falls under. A spell or any other
-     * non-inventory selection matches no rule, so its entries stay.
-     */
+    // Which rule the selected inventory item falls under. A spell or any other non-inventory
+    // selection matches no rule, so its entries stay.
     private int selectedItemRule()
     {
         Widget selected = client.getSelectedWidget();

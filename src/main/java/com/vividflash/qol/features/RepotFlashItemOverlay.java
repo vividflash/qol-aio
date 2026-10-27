@@ -33,12 +33,9 @@ import javax.inject.Singleton;
 import net.runelite.api.widgets.WidgetItem;
 import net.runelite.client.ui.overlay.WidgetItemOverlay;
 
-/**
- * Pulses the inventory slots of potions the repot flash wants re-drunk,
- * alternating between the two configured colors. Registered by
- * {@link RepotFlashFeature}. Nothing shows when no matching potion is carried:
- * an absent item has no inventory slot to mark.
- */
+// Pulses the inventory slots of potions the repot flash wants re-drunk, alternating between the two
+// configured colors. Registered by RepotFlashFeature. Nothing shows when no matching potion is
+// carried: an absent item has no inventory slot to mark.
 @Singleton
 public class RepotFlashItemOverlay extends WidgetItemOverlay
 {

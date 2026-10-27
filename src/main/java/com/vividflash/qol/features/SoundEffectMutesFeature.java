@@ -41,28 +41,22 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 
-/**
- * Mutes categories of repetitive/annoying sound effects, grouped using
- * {@link SoundEffectID} constants and toggled independently per category.
- * Consuming the event before the client plays it silences the sound.
- * <p>
- * Both {@link SoundEffectPlayed} and {@link AreaSoundEffectPlayed} carry a
- * (possibly null) {@code getSource()} actor. When "mute others only" is on, a
- * sound is only eligible for muting if it is sourced from another
- * <em>player</em>. NPC-sourced sounds and sounds with no source
- * (environment/ambient) are never muted in this mode, and your own sounds
- * stay audible even though they can arrive as an area sound whose source
- * happens to be you.
- * <p>
- * Safety exemption: when "never mute others in the Wilderness" is on (default),
- * a sound sourced from another <em>player</em> is never consumed while the
- * local player is in the Wilderness ({@code VarbitID.INSIDE_WILDERNESS}) or on
- * a PvP/Deadman world ({@link WorldType#isPvpWorld}), since another player's
- * noise there is a PKer warning. This overrides both the category toggles and "mute
- * others only". NPC-sourced, self-sourced, and sourceless sounds are not danger
- * cues and keep normal behavior. Sound events arrive on the client thread, so
- * the varbit is read directly per event.
- */
+// Mutes categories of repetitive/annoying sound effects, grouped using SoundEffectID constants and
+// toggled independently per category. Consuming the event before the client plays it silences the
+// sound.
+//
+// Both SoundEffectPlayed and AreaSoundEffectPlayed carry a (possibly null) getSource() actor. When
+// "mute others only" is on, a sound is only eligible for muting if it is sourced from another
+// player. NPC-sourced sounds and sounds with no source (environment/ambient) are never muted in
+// this mode, and your own sounds stay audible even though they can arrive as an area sound whose
+// source happens to be you.
+//
+// Safety exemption: when "never mute others in the Wilderness" is on (default), a sound sourced
+// from another player is never consumed while the local player is in the Wilderness
+// (VarbitID.INSIDE_WILDERNESS) or on a PvP/Deadman world (WorldType#isPvpWorld), since another
+// player's noise there is a PKer warning. This overrides both the category toggles and "mute others
+// only". NPC-sourced, self-sourced, and sourceless sounds are not danger cues and keep normal
+// behavior. Sound events arrive on the client thread, so the varbit is read directly per event.
 @Slf4j
 @Singleton
 public class SoundEffectMutesFeature implements Feature
@@ -133,7 +127,7 @@ public class SoundEffectMutesFeature implements Feature
 
     private static final int[] NONE = new int[0];
 
-    /** Sorted muted sound ids, rebuilt on config change. */
+    // Sorted muted sound ids, rebuilt on config change.
     private volatile int[] muted = NONE;
     private volatile boolean othersOnly;
     private volatile boolean wildernessExempt;
@@ -194,12 +188,10 @@ public class SoundEffectMutesFeature implements Feature
         }
     }
 
-    /**
-     * When "mute others only" is off, every matching sound is muted. When it's on, only sounds sourced from another player are
-     * muted; NPC-sourced, sourceless, and your own sounds are left audible.
-     * Regardless of either, the Wilderness/PvP safety exemption keeps other
-     * players' sounds audible in dangerous areas.
-     */
+    // When "mute others only" is off, every matching sound is muted. When it's on, only sounds
+    // sourced from another player are muted; NPC-sourced, sourceless, and your own sounds are left
+    // audible. Regardless of either, the Wilderness/PvP safety exemption keeps other players'
+    // sounds audible in dangerous areas.
     private boolean shouldMute(Actor source)
     {
         if (wildernessExempt && isOtherPlayer(source) && inPvpDanger())

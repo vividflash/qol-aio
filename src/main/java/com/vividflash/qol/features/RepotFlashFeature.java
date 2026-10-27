@@ -56,27 +56,22 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.ui.overlay.OverlayManager;
 
-/**
- * "Repot flash": flashes the matching potions in the inventory (and/or the
- * whole inventory) when a protective, timer-based potion effect is about to
- * run out. It covers the effects where forgetting to repot can kill you:
- * antifires, poison/venom immunity, overloads (NMZ / CoX / DMM), NMZ
- * absorption points and Menaphite remedy. Stat-boost decay potions are
- * deliberately excluded.
- *
- * The underlying varbits only update once per effect "pulse" (12-18 s), and
- * that granularity is all the warning needs: the flash starts when an effect
- * reaches its final pulse, meaning it expires within the current pulse window.
- * Potions are matched by item name, not hardcoded IDs.
- */
+// "Repot flash": flashes the matching potions in the inventory (and/or the whole inventory) when a
+// protective, timer-based potion effect is about to run out. It covers the effects where forgetting
+// to repot can kill you: antifires, poison/venom immunity, overloads (NMZ / CoX / DMM), NMZ
+// absorption points and Menaphite remedy. Stat-boost decay potions are deliberately excluded.
+//
+// The underlying varbits only update once per effect "pulse" (12-18 s), and that granularity is all
+// the warning needs: the flash starts when an effect reaches its final pulse, meaning it expires
+// within the current pulse window. Potions are matched by item name, not hardcoded IDs.
 @Slf4j
 @Singleton
 public class RepotFlashFeature implements Feature
 {
-    /** Poison varp values below this mean venom immunity, above poison-only. */
+    // Poison varp values below this mean venom immunity, above poison-only.
     private static final int VENOM_CUTOFF = -38;
 
-    /** NMZ arena map region (shared with the KBD lair, which is on plane 0). */
+    // NMZ arena map region (shared with the KBD lair, which is on plane 0).
     private static final int[] NMZ_MAP_REGION = {9033};
 
     private static final int TICK_MS = 600;
@@ -352,12 +347,10 @@ public class RepotFlashFeature implements Feature
         updateFlash();
     }
 
-    /**
-     * Switching the poison dropdown re-reads immunity from the raw varp so the
-     * state doesn't keep the old mode's semantics until the next (up to 18 s
-     * away) pulse. The old mode's state is dropped first, so a mode with no
-     * immunity starts inactive instead of opening an expiry grace window.
-     */
+    // Switching the poison dropdown re-reads immunity from the raw varp so the state doesn't keep
+    // the old mode's semantics until the next (up to 18 s away) pulse. The old mode's state is
+    // dropped first, so a mode with no immunity starts inactive instead of opening an expiry grace
+    // window.
     private void resyncPoisonMode()
     {
         trackedPoisonMode = poisonMode;
@@ -407,10 +400,8 @@ public class RepotFlashFeature implements Feature
         }
     }
 
-    /**
-     * Rebuilds the flashing item ids. Free when no repot target is carried;
-     * the NMZ location check only runs while an absorption potion is.
-     */
+    // Rebuilds the flashing item ids. Free when no repot target is carried; the NMZ location check
+    // only runs while an absorption potion is.
     private void updateFlash()
     {
         flashCount = 0;
@@ -470,10 +461,8 @@ public class RepotFlashFeature implements Feature
         return -1;
     }
 
-    /**
-     * Remaining immunity pulses on the shared poison varp for the watched
-     * mode. Positive varp values are poison damage, not immunity.
-     */
+    // Remaining immunity pulses on the shared poison varp for the watched mode. Positive varp
+    // values are poison damage, not immunity.
     private static int poisonPulses(int varpValue, PoisonFlashMode mode)
     {
         switch (mode)
@@ -575,11 +564,9 @@ public class RepotFlashFeature implements Feature
         return menaphiteEnabled && flashing(Effect.MENAPHITE);
     }
 
-    /**
-     * Absorption is a damage-point pool, not a timer: flash whenever the pool
-     * is at or below the threshold while in the NMZ arena (including 0, the
-     * moment it matters most). The region gate keeps banks flash-free.
-     */
+    // Absorption is a damage-point pool, not a timer: flash whenever the pool is at or below the
+    // threshold while in the NMZ arena (including 0, the moment it matters most). The region gate
+    // keeps banks flash-free.
     private boolean absorptionFlashing()
     {
         return absorptionEnabled
@@ -597,20 +584,15 @@ public class RepotFlashFeature implements Feature
             && Arrays.equals(worldView.getMapRegions(), NMZ_MAP_REGION);
     }
 
-    /**
-     * Whether this inventory item is a repot target of an effect that is
-     * currently in its warning window. Called per item per frame by the item
-     * overlay, so it only reads the per-tick result.
-     */
+    // Whether this inventory item is a repot target of an effect that is currently in its warning
+    // window. Called per item per frame by the item overlay, so it only reads the per-tick result.
     boolean shouldFlashItem(int itemId)
     {
         return flashCount > 0 && indexOf(flashIds, flashCount, itemId) >= 0;
     }
 
-    /**
-     * Whether any effect is flashing AND a matching potion is carried: the
-     * gate for the full-inventory flash (no potion, nothing to click).
-     */
+    // Whether any effect is flashing AND a matching potion is carried: the gate for the
+    // full-inventory flash (no potion, nothing to click).
     boolean anyInventoryTarget()
     {
         return flashCount > 0;
@@ -659,7 +641,7 @@ public class RepotFlashFeature implements Feature
         return style;
     }
 
-    /** Which half of the two-color alternation shows now; read once per frame. */
+    // Which half of the two-color alternation shows now; read once per frame.
     boolean flashFirstColor()
     {
         return (System.currentTimeMillis() / flashIntervalMs) % 2 == 0;
@@ -675,7 +657,7 @@ public class RepotFlashFeature implements Feature
         return first ? border1 : border2;
     }
 
-    /** Name match bits per item id, cached so a name is classified once. */
+    // Name match bits per item id, cached so a name is classified once.
     private int itemMatches(int itemId)
     {
         Integer cached = itemMatches.get(itemId);

@@ -59,19 +59,16 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.Text;
 
-/**
- * Instance exit guard: while the player is inside an instance with valuable loot
- * still on the floor, sinks the options that would take them out of it (object
- * options like Exit/Leave/Travel, plus the inventory/spell options that are just
- * as easy to misclick in that moment, such as Break or a Nardah teleport) below
- * "Walk here". Nothing is removed, so the option stays one right-click away; it
- * just cannot take the left-click while the drop is still on the ground.
- *
- * <p>Valuable is either a whitelisted item name or a stack whose price times
- * its quantity reaches the configured threshold. Ground items are tracked from
- * spawn/despawn/quantity events rather than re-scanned, inside any instance
- * (also with the guard off), and the whole record is dropped on every load screen.
- */
+// Instance exit guard: while the player is inside an instance with valuable loot still on the
+// floor, sinks the options that would take them out of it (object options like Exit/Leave/Travel,
+// plus the inventory/spell options that are just as easy to misclick in that moment, such as Break
+// or a Nardah teleport) below "Walk here". Nothing is removed, so the option stays one right-click
+// away; it just cannot take the left-click while the drop is still on the ground.
+//
+// Valuable is either a whitelisted item name or a stack whose price times its quantity reaches the
+// configured threshold. Ground items are tracked from spawn/despawn/quantity events rather than
+// re-scanned, inside any instance (also with the guard off), and the whole record is dropped on
+// every load screen.
 @Slf4j
 @Singleton
 public class InstanceExitGuardFeature implements Feature
@@ -108,7 +105,7 @@ public class InstanceExitGuardFeature implements Feature
     @Inject
     private QolConfig config;
 
-    /** Ground items by tile, then by item id, holding the stacked quantity. */
+    // Ground items by tile, then by item id, holding the stacked quantity.
     private final Map<WorldPoint, Map<Integer, Integer>> groundItems = new HashMap<>();
 
     // Cached answer of valuableLootAround(), recomputed only after the tracked
@@ -312,10 +309,8 @@ public class InstanceExitGuardFeature implements Feature
         valuableLootDirty = true;
     }
 
-    /**
-     * Ground items only matter inside an instance. Tracked with the guard off
-     * too, so turning it on mid-instance still sees the loot already down.
-     */
+    // Ground items only matter inside an instance. Tracked with the guard off too, so turning it on
+    // mid-instance still sees the loot already down.
     private boolean tracking()
     {
         return inInstance();
@@ -412,10 +407,8 @@ public class InstanceExitGuardFeature implements Feature
         return false;
     }
 
-    /**
-     * Option patterns are case-insensitive, so the raw option is matched
-     * as-is on this per-frame path; tags are stripped only when present.
-     */
+    // Option patterns are case-insensitive, so the raw option is matched as-is on this per-frame
+    // path; tags are stripped only when present.
     private static boolean matchesOption(List<Pattern> patterns, String option)
     {
         if (option == null)
@@ -433,13 +426,10 @@ public class InstanceExitGuardFeature implements Feature
         return false;
     }
 
-    /**
-     * Where the deprioritized entries are re-inserted. Menu entries render
-     * bottom-up, so inserting AT an anchor's index puts them below it: "Walk
-     * here" when the menu has one, else "Use" (which the item options sit next
-     * to), else index 0, the very bottom of the menu. The index counts only
-     * the entries that are not sunk.
-     */
+    // Where the deprioritized entries are re-inserted. Menu entries render bottom-up, so inserting
+    // AT an anchor's index puts them below it: "Walk here" when the menu has one, else "Use" (which
+    // the item options sit next to), else index 0, the very bottom of the menu. The index counts
+    // only the entries that are not sunk.
     private int anchorIndex(MenuEntry[] entries, boolean[] sunk)
     {
         int use = -1;
@@ -501,11 +491,9 @@ public class InstanceExitGuardFeature implements Feature
         return false;
     }
 
-    /**
-     * A cache miss on an unknown or delisted id can throw, which on this path
-     * would take the menu build down with it, so a failed lookup only means
-     * "this stack doesn't count" and the remaining stacks still get checked.
-     */
+    // A cache miss on an unknown or delisted id can throw, which on this path would take the menu
+    // build down with it, so a failed lookup only means "this stack doesn't count" and the
+    // remaining stacks still get checked.
     private boolean isValuable(int itemId, int quantity, int threshold)
     {
         try

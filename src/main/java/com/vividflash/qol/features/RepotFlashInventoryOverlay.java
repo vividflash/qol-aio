@@ -37,12 +37,9 @@ import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
-/**
- * Pulses the whole inventory area between the two configured colors while the
- * repot flash is active. The louder variant of {@link RepotFlashItemOverlay}.
- * Registered by {@link RepotFlashFeature}. Only drawn while a
- * matching potion is actually carried (nothing to click otherwise).
- */
+// Pulses the whole inventory area between the two configured colors while the repot flash is
+// active. The louder variant of RepotFlashItemOverlay. Registered by RepotFlashFeature. Only drawn
+// while a matching potion is actually carried (nothing to click otherwise).
 @Singleton
 public class RepotFlashInventoryOverlay extends Overlay
 {

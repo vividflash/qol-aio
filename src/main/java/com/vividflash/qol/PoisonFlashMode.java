@@ -24,12 +24,9 @@
  */
 package com.vividflash.qol;
 
-/**
- * What the repot flash watches on the shared poison varp. Poison and venom
- * immunity live in one value (venom immunity decays into poison immunity),
- * so this is a single selector rather than two toggles: most players only
- * care about keeping poison immunity up; venom matters at Zulrah and co.
- */
+// What the repot flash watches on the shared poison varp. Poison and venom immunity live in one
+// value (venom immunity decays into poison immunity), so this is a single selector rather than two
+// toggles: most players only care about keeping poison immunity up; venom matters at Zulrah and co.
 public enum PoisonFlashMode
 {
     OFF("Off"),

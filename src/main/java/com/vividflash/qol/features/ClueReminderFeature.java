@@ -41,12 +41,10 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.client.game.ItemManager;
 
-/**
- * Reminder (not a blocker): once you hold at least the configured number of clue
- * scrolls of a single tier, posts a one-time chat nudge to go do them. Fires once
- * per tier; re-arms when that tier's held count drops back below the threshold.
- * Tier detection is name-based ("clue scroll (tier)") so no clue item IDs are baked in.
- */
+// Reminder (not a blocker): once you hold at least the configured number of clue scrolls of a
+// single tier, posts a one-time chat nudge to go do them. Fires once per tier; re-arms when that
+// tier's held count drops back below the threshold. Tier detection is name-based ("clue scroll
+// (tier)") so no clue item IDs are baked in.
 @Slf4j
 @Singleton
 public class ClueReminderFeature implements Feature

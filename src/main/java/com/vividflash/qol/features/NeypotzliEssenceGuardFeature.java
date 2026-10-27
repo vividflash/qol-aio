@@ -42,31 +42,23 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.util.Text;
 
-/**
- * Blocks teleporting/leaving Neypotzli while carrying sulphurous essence, since
- * it disintegrates on exit ("The resources from Neypotzli fizzle to dust...").
- *
- * Region id 5782, from the Neypotzli map point (1440, 9632).
- *
- * Coverage is deliberately wider than a plain "teleport" option match: the
- * essence is only lost on actually LEAVING Neypotzli (or on death); moving
- * between its internal rooms is safe, so this must never touch anything but
- * genuine exit/teleport actions, and every check runs only inside that region.
- * Escape routes covered:
- *  - "Pass-through": the dungeon exit itself.
- *  - Any option containing "teleport": scrolls (e.g. treasure-trail
- *    "X teleport" scrolls use a "Teleport" option) and worn items whose
- *    option says "Teleport".
- *  - Spellbook teleports: the option is "Cast" and the spell name in the
- *    target carries "teleport" (e.g. "Varrock Teleport").
- *  - Teleport tablets don't say "teleport" in the option, only in the item
- *    name (e.g. "Varrock teleport", "Teleport to house"). The option is
- *    always "Break", so it needs a name check.
- *  - Teleport jewellery (games necklace, ring of dueling, amulet of glory,
- *    skills necklace, ring of wealth, combat bracelet, xeric's talisman,
- *    burning amulet, etc.) is activated from the inventory with "Rub", not
- *    a "teleport"-named option, so it also needs a name check.
- */
+// Blocks teleporting/leaving Neypotzli while carrying sulphurous essence, since it disintegrates on
+// exit ("The resources from Neypotzli fizzle to dust...").
+//
+// Region id 5782, from the Neypotzli map point (1440, 9632).
+//
+// Coverage is deliberately wider than a plain "teleport" option match: the essence is only lost on
+// actually LEAVING Neypotzli (or on death); moving between its internal rooms is safe, so this must
+// never touch anything but genuine exit/teleport actions, and every check runs only inside that
+// region. Escape routes covered: - "Pass-through": the dungeon exit itself. - Any option containing
+// "teleport": scrolls (e.g. treasure-trail "X teleport" scrolls use a "Teleport" option) and worn
+// items whose option says "Teleport". - Spellbook teleports: the option is "Cast" and the spell
+// name in the target carries "teleport" (e.g. "Varrock Teleport"). - Teleport tablets don't say
+// "teleport" in the option, only in the item name (e.g. "Varrock teleport", "Teleport to house").
+// The option is always "Break", so it needs a name check. - Teleport jewellery (games necklace,
+// ring of dueling, amulet of glory, skills necklace, ring of wealth, combat bracelet, xeric's
+// talisman, burning amulet, etc.) is activated from the inventory with "Rub", not a
+// "teleport"-named option, so it also needs a name check.
 @Slf4j
 @Singleton
 public class NeypotzliEssenceGuardFeature implements Feature
@@ -213,11 +205,9 @@ public class NeypotzliEssenceGuardFeature implements Feature
         return false;
     }
 
-    /**
-     * Carried amount, read from the inventory container rather than the
-     * inventory widget: the container holds real quantities and stays readable
-     * while another interface is drawn over the inventory.
-     */
+    // Carried amount, read from the inventory container rather than the inventory widget: the
+    // container holds real quantities and stays readable while another interface is drawn over the
+    // inventory.
     private int inventoryCount(int itemId)
     {
         ItemContainer inventory = client.getItemContainer(InventoryID.INV);

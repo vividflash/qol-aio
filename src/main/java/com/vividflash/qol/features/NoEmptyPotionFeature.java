@@ -43,14 +43,11 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.util.Text;
 
-/**
- * "No Empty Potion": removes the "Empty" option on potions, at every dose
- * count including full ones (item name ending "(N)"), so you can't misclick
- * and waste doses. The dose suffix is what identifies a potion here, so no
- * per-item name list is needed: barbarian mixes, brews, serums and overloads
- * all carry it, and the non-potion containers with an "Empty" option (buckets,
- * vials, sacks, cups) do not.
- */
+// "No Empty Potion": removes the "Empty" option on potions, at every dose count including full ones
+// (item name ending "(N)"), so you can't misclick and waste doses. The dose suffix is what
+// identifies a potion here, so no per-item name list is needed: barbarian mixes, brews, serums and
+// overloads all carry it, and the non-potion containers with an "Empty" option (buckets, vials,
+// sacks, cups) do not.
 @Slf4j
 @Singleton
 public class NoEmptyPotionFeature implements Feature

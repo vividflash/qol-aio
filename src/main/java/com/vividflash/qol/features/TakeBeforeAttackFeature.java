@@ -41,17 +41,14 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.util.Text;
 
-/**
- * "Take before Attack": near configured named monsters, moves the "Attack"
- * NPC option to the bottom of the menu, below "Walk here", so a "Take" on the
- * drop wins the left-click and you loot before re-engaging. Runs after
- * RuneLite's own sort (priority -1).
- *
- * <p>Scoping: the monster list enables the swap; the monster exclusion list
- * disables it again (exclusion wins if a monster matches both). The
- * ground-item exclusion list independently withholds specific item drops
- * (e.g. plain Bones) from being prioritized, regardless of the monster.
- */
+// "Take before Attack": near configured named monsters, moves the "Attack" NPC option to the bottom
+// of the menu, below "Walk here", so a "Take" on the drop wins the left-click and you loot before
+// re-engaging. Runs after RuneLite's own sort (priority -1).
+//
+// Scoping: the monster list enables the swap; the monster exclusion list disables it again
+// (exclusion wins if a monster matches both). The ground-item exclusion list independently
+// withholds specific item drops (e.g. plain Bones) from being prioritized, regardless of the
+// monster.
 @Slf4j
 @Singleton
 public class TakeBeforeAttackFeature implements Feature
@@ -210,7 +207,7 @@ public class TakeBeforeAttackFeature implements Feature
         return lastTakeVerdict;
     }
 
-    /** Options rarely carry tags, so skip the copy when there are none. */
+    // Options rarely carry tags, so skip the copy when there are none.
     private static String untagged(String option)
     {
         return option.indexOf('<') >= 0 ? Text.removeTags(option) : option;

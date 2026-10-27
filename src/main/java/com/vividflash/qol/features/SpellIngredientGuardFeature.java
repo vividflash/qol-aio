@@ -47,18 +47,15 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 
-/**
- * Superglass Make and Arceuus offering-spell misclick guards. The sulphurous
- * essence lockout lives in {@link NeypotzliEssenceGuardFeature}.
- *
- * Counts are tracked via {@link ItemContainerChanged} (authoritative inventory
- * state), not read live off the inventory widget at click time: a live read
- * lags a tick behind the click and lets repeated withdrawals slip past the cap.
- *
- * Sinister/Demonic Offering skip the min-count block while the Fountain of
- * Rune's effect is active, since a cast there consumes no runes and a partial
- * offering wastes nothing.
- */
+// Superglass Make and Arceuus offering-spell misclick guards. The sulphurous essence lockout lives
+// in NeypotzliEssenceGuardFeature.
+//
+// Counts are tracked via ItemContainerChanged (authoritative inventory state), not read live off
+// the inventory widget at click time: a live read lags a tick behind the click and lets repeated
+// withdrawals slip past the cap.
+//
+// Sinister/Demonic Offering skip the min-count block while the Fountain of Rune's effect is active,
+// since a cast there consumes no runes and a partial offering wastes nothing.
 @Slf4j
 @Singleton
 public class SpellIngredientGuardFeature implements Feature
@@ -113,11 +110,8 @@ public class SpellIngredientGuardFeature implements Feature
 
     private final Map<Integer, Integer> trackedCounts = new HashMap<>();
 
-    /**
-     * Noted sand and seaweed carried, counted toward the withdraw caps only:
-     * the casts need the unnoted items. Note ids are looked up on first use,
-     * on the client thread.
-     */
+    // Noted sand and seaweed carried, counted toward the withdraw caps only: the casts need the
+    // unnoted items. Note ids are looked up on first use, on the client thread.
     private int notedSandId = -2;
     private int notedSeaweedId = -2;
     private int notedSand;
@@ -157,7 +151,7 @@ public class SpellIngredientGuardFeature implements Feature
         });
     }
 
-    /** The inventory is null until the player exists, hence the guard. */
+    // The inventory is null until the player exists, hence the guard.
     private void primeCounts()
     {
         ItemContainer inventory = client.getItemContainer(InventoryID.INV);
@@ -216,7 +210,7 @@ public class SpellIngredientGuardFeature implements Feature
         }
     }
 
-    /** Carried amount for a withdraw cap, noted copies included. */
+    // Carried amount for a withdraw cap, noted copies included.
     private int withdrawCount(int itemId)
     {
         int noted = itemId == ItemID.BUCKET_SAND ? notedSand : itemId == ItemID.GIANT_SEAWEED ? notedSeaweed : 0;
@@ -286,24 +280,18 @@ public class SpellIngredientGuardFeature implements Feature
         }
     }
 
-    /**
-     * True while the Fountain of Rune's effect is on the player, where
-     * offering spells cost no runes.
-     */
+    // True while the Fountain of Rune's effect is on the player, where offering spells cost no
+    // runes.
     private boolean nearFountainOfRune()
     {
         return client.getVarbitValue(VarbitID.FOUNTAIN_OF_RUNE_ACTIVE) == 1;
     }
 
-    /**
-     * Stricter than {@link #withdrawAllowed}: requires the inventory to be
-     * completely empty of this item before allowing a withdrawal (so a leftover
-     * item can never combine with a fresh withdrawal to overshoot the target),
-     * and requires either the exact "Withdraw-{target}" preset button or the
-     * custom "Withdraw-X" prompt (its typed number is not in the click event,
-     * it comes from a separate chat input step, so it cannot be checked here
-     * and is trusted).
-     */
+    // Stricter than withdrawAllowed: requires the inventory to be completely empty of this item
+    // before allowing a withdrawal (so a leftover item can never combine with a fresh withdrawal to
+    // overshoot the target), and requires either the exact "Withdraw-{target}" preset button or the
+    // custom "Withdraw-X" prompt (its typed number is not in the click event, it comes from a
+    // separate chat input step, so it cannot be checked here and is trusted).
     private boolean bulkWithdrawAllowed(MenuOptionClicked event, int itemId, int target, String itemLabel)
     {
         int current = withdrawCount(itemId);
@@ -326,13 +314,10 @@ public class SpellIngredientGuardFeature implements Feature
         return true;
     }
 
-    /**
-     * Returns false (and consumes the event) if this withdrawal should be blocked,
-     * including a numbered or Withdraw-All option that takes out more than
-     * is left under the cap.
-     * Otherwise optimistically bumps the tracked count so a rapid follow-up click
-     * still sees an up-to-date value even before the container update lands.
-     */
+    // Returns false (and consumes the event) if this withdrawal should be blocked, including a
+    // numbered or Withdraw-All option that takes out more than is left under the cap. Otherwise
+    // optimistically bumps the tracked count so a rapid follow-up click still sees an up-to-date
+    // value even before the container update lands.
     private boolean withdrawAllowed(MenuOptionClicked event, int itemId, int limit, String description)
     {
         int current = withdrawCount(itemId);

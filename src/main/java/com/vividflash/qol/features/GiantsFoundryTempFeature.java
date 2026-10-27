@@ -51,30 +51,25 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.util.Text;
 
-/**
- * Giants' Foundry safety guard. Two independent, fail-open blocks on the
- * crafting stations (Trip hammer / Grindstone / Polishing wheel):
- * <ul>
- *   <li><b>Stage-temperature mismatch</b> ({@code foundryTempGuard}): each
- *       crafting stage needs a specific heat band (hammer = high, grind = medium,
- *       polish = low). Working the preform while its temperature is outside the
- *       current stage's band gives no/negative progress and damages the sword, so
- *       the click is consumed. A stone-cold preform (temperature 0) falls outside
- *       every band and is therefore still covered.</li>
- *   <li><b>Bonus-window overwork</b> ({@code foundryOverworkGuard}): during a
- *       stage a periodic bonus ("sweetspot") window opens; clicking the station
- *       once more inside it grants extra progress, but clicking after it has
- *       closed overworks the metal for negative progress. Once the window has been
- *       seen to open and then close, the next station click is consumed
- *       until the following action resets the cycle.</li>
- * </ul>
- * Everything is fail-open: a click is only consumed when the stage, its required
- * band and the current temperature are all unambiguously known (mismatch block),
- * or when the bonus window was observed to close (overwork block). Any
- * unreadable widget/varbit lets the click through. Heating and quenching are
- * never matched, since those are the actions that bring the preform back into
- * the band a block is complaining about.
- */
+// Giants' Foundry safety guard. Two independent, fail-open blocks on the crafting stations (Trip
+// hammer / Grindstone / Polishing wheel):
+//
+// - Stage-temperature mismatch (foundryTempGuard): each crafting stage needs a specific heat band
+//   (hammer = high, grind = medium, polish = low). Working the preform while its temperature is
+//   outside the current stage's band gives no/negative progress and damages the sword, so the click
+//   is consumed. A stone-cold preform (temperature 0) falls outside every band and is therefore
+//   still covered.
+// - Bonus-window overwork (foundryOverworkGuard): during a stage a periodic bonus ("sweetspot")
+//   window opens; clicking the station once more inside it grants extra progress, but clicking
+//   after it has closed overworks the metal for negative progress. Once the window has been seen to
+//   open and then close, the next station click is consumed until the following action resets the
+//   cycle.
+//
+// Everything is fail-open: a click is only consumed when the stage, its required band and the
+// current temperature are all unambiguously known (mismatch block), or when the bonus window was
+// observed to close (overwork block). Any unreadable widget/varbit lets the click through. Heating
+// and quenching are never matched, since those are the actions that bring the preform back into the
+// band a block is complaining about.
 @Slf4j
 @Singleton
 public class GiantsFoundryTempFeature implements Feature
@@ -305,11 +300,9 @@ public class GiantsFoundryTempFeature implements Feature
         bonusExpired = false;
     }
 
-    /**
-     * The three station actions the guards apply to. Heating and quenching are
-     * excluded on purpose: they change the temperature rather than work the
-     * metal, and blocking them would leave no way out of a band mismatch.
-     */
+    // The three station actions the guards apply to. Heating and quenching are excluded on purpose:
+    // they change the temperature rather than work the metal, and blocking them would leave no way
+    // out of a band mismatch.
     private boolean isForgeAction(String option)
     {
         if (isTemperatureAction(option))
@@ -325,7 +318,7 @@ public class GiantsFoundryTempFeature implements Feature
         return option.contains("heat") || option.contains("quench") || option.contains("cool");
     }
 
-    /** True while the Foundry's crafting HUD is on screen. */
+    // True while the Foundry's crafting HUD is on screen.
     private boolean atFoundry()
     {
         // A missing HUD also clears the load flag, so a close event that never
@@ -334,11 +327,8 @@ public class GiantsFoundryTempFeature implements Feature
         return hudLoaded;
     }
 
-    /**
-     * Current stage of the sword, derived from completion progress and the ordered
-     * list of stages shown on the completion bar. Returns null when it cannot be
-     * determined so callers fail open.
-     */
+    // Current stage of the sword, derived from completion progress and the ordered list of stages
+    // shown on the completion bar. Returns null when it cannot be determined so callers fail open.
     private Stage resolveStage()
     {
         Widget completionBar = client.getWidget(InterfaceID.GiantsFoundryHud.COMPLETION_BAR);
@@ -390,11 +380,9 @@ public class GiantsFoundryTempFeature implements Feature
         return null;
     }
 
-    /**
-     * Which heat band the preform currently sits in. Returns NONE when it is
-     * outside every band (includes a stone-cold, temperature-0 preform), or null
-     * when the band widths could not be read (fail open).
-     */
+    // Which heat band the preform currently sits in. Returns NONE when it is outside every band
+    // (includes a stone-cold, temperature-0 preform), or null when the band widths could not be
+    // read (fail open).
     private Band getCurrentBand()
     {
         double bandWidth = getBandRatio();
@@ -415,10 +403,8 @@ public class GiantsFoundryTempFeature implements Feature
         return Band.NONE;
     }
 
-    /**
-     * Whether an integer 0..1000 heat value falls within a band spanning
-     * {@code bandWidth} (as a fraction of the 0..1000 scale) around {@code center}.
-     */
+    // Whether an integer 0..1000 heat value falls within a band spanning bandWidth (as a fraction
+    // of the 0..1000 scale) around center.
     private boolean withinBand(int heat, double center, double bandWidth)
     {
         double halfWidth = bandWidth / 2;
@@ -427,11 +413,9 @@ public class GiantsFoundryTempFeature implements Feature
         return heat >= lowerBound && heat <= upperBound;
     }
 
-    /**
-     * Width of a heat band as a fraction of the whole temperature bar. The bands
-     * are all the same width; the medium (grind) bar is used as the sample.
-     * Returns 0 when the widgets are unreadable.
-     */
+    // Width of a heat band as a fraction of the whole temperature bar. The bands are all the same
+    // width; the medium (grind) bar is used as the sample. Returns 0 when the widgets are
+    // unreadable.
     private double getBandRatio()
     {
         Widget fullTemperatureBar = client.getWidget(InterfaceID.GiantsFoundryHud.TEMPERATURE_BAR_RECT1);

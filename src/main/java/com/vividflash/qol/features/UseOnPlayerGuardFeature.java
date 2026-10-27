@@ -46,15 +46,12 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 
-/**
- * Removes "Use [item] -&gt; Player" so an inventory item can't be misclicked
- * onto another player, minus a whitelist of items that legitimately go on one.
- *
- * <p>{@code WIDGET_TARGET_ON_PLAYER} is also the action for casting a spell on
- * a player, so the guard first checks that what is selected is an inventory
- * item. Spell casts on players (Vengeance Other, Heal Other, an offensive cast
- * in the Wilderness) keep their menu entry.</p>
- */
+// Removes "Use [item] -> Player" so an inventory item can't be misclicked onto another player,
+// minus a whitelist of items that legitimately go on one.
+//
+// WIDGET_TARGET_ON_PLAYER is also the action for casting a spell on a player, so the guard first
+// checks that what is selected is an inventory item. Spell casts on players (Vengeance Other, Heal
+// Other, an offensive cast in the Wilderness) keep their menu entry.
 @Slf4j
 @Singleton
 public class UseOnPlayerGuardFeature implements Feature
@@ -149,11 +146,9 @@ public class UseOnPlayerGuardFeature implements Feature
         }
     }
 
-    /**
-     * Item id of the selected inventory item, or -1 when the selection is a
-     * spell or nothing at all. The menu entry itself carries no reliable item
-     * id for widget-target actions, so the selection is read from the widget.
-     */
+    // Item id of the selected inventory item, or -1 when the selection is a spell or nothing at
+    // all. The menu entry itself carries no reliable item id for widget-target actions, so the
+    // selection is read from the widget.
     private int selectedInventoryItemId()
     {
         Widget selected = client.getSelectedWidget();

@@ -24,10 +24,8 @@
  */
 package com.vividflash.qol;
 
-/**
- * How the repot flash draws: over the matching potion slots, over the whole
- * inventory, or both at once.
- */
+// How the repot flash draws: over the matching potion slots, over the whole inventory, or both at
+// once.
 public enum RepotFlashStyle
 {
     POTION_ITEMS("Potion items"),

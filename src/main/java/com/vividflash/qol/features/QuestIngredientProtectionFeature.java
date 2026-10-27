@@ -43,11 +43,8 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 
-/**
- * Removes the "Eat"/"Drink" option on quest items that are easy to
- * misclick-consume and lose (they're needed for a quest step, not for food
- * value).
- */
+// Removes the "Eat"/"Drink" option on quest items that are easy to misclick-consume and lose
+// (they're needed for a quest step, not for food value).
 @Slf4j
 @Singleton
 public class QuestIngredientProtectionFeature implements Feature

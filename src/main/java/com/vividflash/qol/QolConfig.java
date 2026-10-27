@@ -35,7 +35,7 @@ import net.runelite.client.config.Range;
 @ConfigGroup(QolConfig.GROUP)
 public interface QolConfig extends Config
 {
-    /** Config group name, also used by the features that reload on a change. */
+    // Config group name, also used by the features that reload on a change.
     String GROUP = "personalqol";
 
     @ConfigSection(

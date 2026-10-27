@@ -56,30 +56,23 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.util.Text;
 
-/**
- * Removes "Chop"/"Cut" on trees (and a few tree-like objects) when no axe is
- * equipped/carried, and "Mine" on rocks when no pickaxe is equipped/carried.
- * A "require fishing tool" toggle covers fishing spots, per the wiki's
- * Fishing equipment table: Net (small net), Big Net, Bait (rod/oily rod or
- * their pearl versions), Lure (fly rod or pearl fly rod), Rod (barbarian
- * rod/pearl barbarian rod), Fish (karambwan vessel), Cage (lobster pot), and
- * Harpoon.
- *
- * <p>Harpoon is special: Otto Godblessed's Barbarian Training lets you fish
- * tuna/swordfish and (much later) shark bare-handed, so removing the option
- * whenever no harpoon is carried would delete a legitimate training method.
- * The levels stand in for the unlock rather than a varbit, which keeps the
- * check to values the API states plainly; a player who has the levels but has
- * not bought the unlock keeps an option that does nothing, which is the side
- * to err on. The spot's tier is read off its sibling option: a Big Net
- * sibling means shark, anything else means tuna/swordfish. Tempoross
- * harpoonfish need no harpoon at all, and squid spots (Harpoon with no fishing
- * sibling) always do, so those two are handled by NPC id and by a lantern
- * check respectively.</p>
- *
- * Uses {@link PostMenuSort}, the event meant for menu-entry removal after
- * RuneLite's own sort pass completes.
- */
+// Removes "Chop"/"Cut" on trees (and a few tree-like objects) when no axe is equipped/carried, and
+// "Mine" on rocks when no pickaxe is equipped/carried. A "require fishing tool" toggle covers
+// fishing spots, per the wiki's Fishing equipment table: Net (small net), Big Net, Bait (rod/oily
+// rod or their pearl versions), Lure (fly rod or pearl fly rod), Rod (barbarian rod/pearl barbarian
+// rod), Fish (karambwan vessel), Cage (lobster pot), and Harpoon.
+//
+// Harpoon is special: Otto Godblessed's Barbarian Training lets you fish tuna/swordfish and (much
+// later) shark bare-handed, so removing the option whenever no harpoon is carried would delete a
+// legitimate training method. The levels stand in for the unlock rather than a varbit, which keeps
+// the check to values the API states plainly; a player who has the levels but has not bought the
+// unlock keeps an option that does nothing, which is the side to err on. The spot's tier is read
+// off its sibling option: a Big Net sibling means shark, anything else means tuna/swordfish.
+// Tempoross harpoonfish need no harpoon at all, and squid spots (Harpoon with no fishing sibling)
+// always do, so those two are handled by NPC id and by a lantern check respectively.
+//
+// Uses PostMenuSort, the event meant for menu-entry removal after RuneLite's own sort pass
+// completes.
 @Slf4j
 @Singleton
 public class RequireToolFeature implements Feature
@@ -209,7 +202,7 @@ public class RequireToolFeature implements Feature
     private Set<String> lastAxeOverrides;
     private boolean lastAxeVerdict;
 
-    /** Fishing option to the tools that satisfy it, per the wiki's equipment table. */
+    // Fishing option to the tools that satisfy it, per the wiki's equipment table.
     private static final Map<String, Set<Integer>> FISHING_TOOLS = buildFishingTools();
 
     private static Map<String, Set<Integer>> buildFishingTools()
@@ -266,7 +259,7 @@ public class RequireToolFeature implements Feature
         harpoonBareHanded = config.harpoonBareHanded();
     }
 
-    /** Containers are null until the player exists, hence the guards. */
+    // Containers are null until the player exists, hence the guards.
     private void primeItemCaches()
     {
         ItemContainer worn = client.getItemContainer(InventoryID.WORN);
@@ -456,10 +449,8 @@ public class RequireToolFeature implements Feature
         return false;
     }
 
-    /**
-     * A kept bare-handed Harpoon entry is sunk when another option on the
-     * same spot has its tool carried.
-     */
+    // A kept bare-handed Harpoon entry is sunk when another option on the same spot has its tool
+    // carried.
     private boolean demotesHarpoon(MenuEntry entry, MenuEntry[] entries)
     {
         return NPC_OPTION_TYPES.contains(entry.getType())
@@ -467,10 +458,8 @@ public class RequireToolFeature implements Feature
             && hasUsableFishingSibling(entry, entries);
     }
 
-    /**
-     * Whether a sibling is another fishing option on the same spot. Entries
-     * with no NPC have no siblings, so they fall through to the lantern rule.
-     */
+    // Whether a sibling is another fishing option on the same spot. Entries with no NPC have no
+    // siblings, so they fall through to the lantern rule.
     private static boolean isFishingSibling(MenuEntry sibling, MenuEntry entry, NPC npc)
     {
         if (sibling == entry || !NPC_OPTION_TYPES.contains(sibling.getType())
@@ -482,13 +471,10 @@ public class RequireToolFeature implements Feature
         return other != null && other.getIndex() == npc.getIndex();
     }
 
-    /**
-     * Whether a Harpoon entry survives with no harpoon carried. Tempoross needs
-     * none; a Big Net sibling marks a shark spot and anything else a
-     * tuna/swordfish one; a spot with no fishing sibling at all is a squid spot
-     * (or something unknown), which keeps the entry on a lit lantern or on
-     * shark levels, so an unrecognised spot can never be wrongly stripped.
-     */
+    // Whether a Harpoon entry survives with no harpoon carried. Tempoross needs none; a Big Net
+    // sibling marks a shark spot and anything else a tuna/swordfish one; a spot with no fishing
+    // sibling at all is a squid spot (or something unknown), which keeps the entry on a lit lantern
+    // or on shark levels, so an unrecognised spot can never be wrongly stripped.
     private boolean keepsBareHandedHarpoon(MenuEntry entry, MenuEntry[] entries)
     {
         NPC npc = entry.getNpc();
@@ -535,7 +521,7 @@ public class RequireToolFeature implements Feature
             && client.getRealSkillLevel(Skill.STRENGTH) >= strength;
     }
 
-    /** Another option on the same spot whose tool is actually carried. */
+    // Another option on the same spot whose tool is actually carried.
     private boolean hasUsableFishingSibling(MenuEntry entry, MenuEntry[] entries)
     {
         NPC npc = entry.getNpc();
@@ -553,14 +539,11 @@ public class RequireToolFeature implements Feature
         return false;
     }
 
-    /**
-     * Sinks a kept Harpoon entry to just above "Walk here" so a usable option on
-     * the same spot keeps the left-click. Menu entries run bottom-to-top, so
-     * inserting one past the WALK index lands above it (InstanceExitGuardFeature
-     * inserts AT that index instead, to land below it). Works on the array
-     * left after the removals, so the rebuild can't resurrect them. Returns
-     * the reordered array, or null when nothing moves.
-     */
+    // Sinks a kept Harpoon entry to just above "Walk here" so a usable option on the same spot
+    // keeps the left-click. Menu entries run bottom-to-top, so inserting one past the WALK index
+    // lands above it (InstanceExitGuardFeature inserts AT that index instead, to land below it).
+    // Works on the array left after the removals, so the rebuild can't resurrect them. Returns the
+    // reordered array, or null when nothing moves.
     private MenuEntry[] demoteHarpoonEntries(MenuEntry[] entries, List<MenuEntry> harpoonEntries)
     {
         // walkIndex counts only the entries that stay, as the insert point.
@@ -612,7 +595,7 @@ public class RequireToolFeature implements Feature
         return reordered;
     }
 
-    /** Reference equality: MenuEntry doesn't promise a useful equals(). */
+    // Reference equality: MenuEntry doesn't promise a useful equals().
     private boolean containsIdentity(List<MenuEntry> entries, MenuEntry target)
     {
         for (MenuEntry entry : entries)
@@ -642,7 +625,8 @@ public class RequireToolFeature implements Feature
         return false;
     }
 
-    /** Trees of any capitalisation, plus the tree-like objects the sets name. Takes the raw menu target. */
+    // Trees of any capitalisation, plus the tree-like objects the sets name. Takes the raw menu
+    // target.
     private boolean isAxeTarget(String rawTarget, Set<String> overrides)
     {
         if (rawTarget.equals(lastAxeTarget) && overrides == lastAxeOverrides)

@@ -43,11 +43,9 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.util.Text;
 
-/**
- * Blocks the world-switcher (via its menu click) while a configured impling type
- * is in the loaded scene, so you don't hop away and lose a catch. Impling
- * presence is detected by NPC name against the configured list.
- */
+// Blocks the world-switcher (via its menu click) while a configured impling type is in the loaded
+// scene, so you don't hop away and lose a catch. Impling presence is detected by NPC name against
+// the configured list.
 @Slf4j
 @Singleton
 public class WorldhopImplingFeature implements Feature

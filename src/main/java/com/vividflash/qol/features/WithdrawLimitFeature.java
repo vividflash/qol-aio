@@ -47,36 +47,30 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 
-/**
- * Generic version of the same "stop withdrawing more than needed" guard used by
- * {@link SpellIngredientGuardFeature} for sand/seaweed, but configurable by item name
- * instead of hardcoded to Superglass Make (e.g. capping Pot at 2), plus a
- * dedicated Volcanic ash line (withdraw in increments, e.g. 5 or 10 at a
- * time, capped at a total of 50).
- *
- * A withdraw option never overshoots the cap: a numbered option (Withdraw-1,
- * Withdraw-10, the last custom amount) or Withdraw-All is allowed only when
- * the amount it takes out is at most what is left under the cap.
- *
- * Tracks counts via {@link ItemContainerChanged} (the authoritative inventory
- * state) rather than re-reading the inventory widget at click time: the widget
- * lags a tick behind the click, so a live read lets rapid repeated withdrawals
- * slip past the cap. The count is also bumped optimistically on the click itself
- * so a second click in the same tick still sees an up-to-date value.
- */
+// Generic version of the same "stop withdrawing more than needed" guard used by
+// SpellIngredientGuardFeature for sand/seaweed, but configurable by item name instead of hardcoded
+// to Superglass Make (e.g. capping Pot at 2), plus a dedicated Volcanic ash line (withdraw in
+// increments, e.g. 5 or 10 at a time, capped at a total of 50).
+//
+// A withdraw option never overshoots the cap: a numbered option (Withdraw-1, Withdraw-10, the last
+// custom amount) or Withdraw-All is allowed only when the amount it takes out is at most what is
+// left under the cap.
+//
+// Tracks counts via ItemContainerChanged (the authoritative inventory state) rather than re-reading
+// the inventory widget at click time: the widget lags a tick behind the click, so a live read lets
+// rapid repeated withdrawals slip past the cap. The count is also bumped optimistically on the
+// click itself so a second click in the same tick still sees an up-to-date value.
 @Slf4j
 @Singleton
 public class WithdrawLimitFeature implements Feature
 {
     private final Map<Integer, Integer> trackedCounts = new HashMap<>();
 
-    /**
-     * Noted id to unnoted id for the dedicated items, so a withdraw-as-note
-     * stack counts toward the same cap. Built on first use, on the client thread.
-     */
+    // Noted id to unnoted id for the dedicated items, so a withdraw-as-note stack counts toward the
+    // same cap. Built on first use, on the client thread.
     private Map<Integer, Integer> notedDedicated;
 
-    /** Parsed Items list, replaced whole on config change and read on the client thread. */
+    // Parsed Items list, replaced whole on config change and read on the client thread.
     private volatile Map<String, Integer> limits = Map.of();
 
     @Inject
@@ -134,7 +128,7 @@ public class WithdrawLimitFeature implements Feature
         }
     }
 
-    /** The inventory is null until the player exists, hence the guard. */
+    // The inventory is null until the player exists, hence the guard.
     private void primeCounts()
     {
         ItemContainer inventory = client.getItemContainer(InventoryID.INV);

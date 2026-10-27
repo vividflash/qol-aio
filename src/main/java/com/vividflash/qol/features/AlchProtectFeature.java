@@ -56,15 +56,13 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.Text;
 
-/**
- * Alchemy protection: hides items from being alched or explorer's-ring'd when
- * they are untradeable, in the collection log, or on a protection list. Aimed
- * at stopping an accidental alch of an important untradeable.
- *
- * Mechanism: while an alch spell is selected, or the Explorer's ring alchemy
- * interface is open, hide the protected inventory item widgets so they can't be
- * clicked. Restore them when alching ends.
- */
+// Alchemy protection: hides items from being alched or explorer's-ring'd when they are untradeable,
+// in the collection log, or on a protection list. Aimed at stopping an accidental alch of an
+// important untradeable.
+//
+// Mechanism: while an alch spell is selected, or the Explorer's ring alchemy interface is open,
+// hide the protected inventory item widgets so they can't be clicked. Restore them when alching
+// ends.
 @Slf4j
 @Singleton
 public class AlchProtectFeature implements Feature
@@ -151,11 +149,8 @@ public class AlchProtectFeature implements Feature
         return mode != AlchMode.NONE;
     }
 
-    /**
-     * Hidden item widgets stay hidden until something un-hides them, so
-     * switching the feature off has to release them right away rather than
-     * leave the player with slots they cannot click.
-     */
+    // Hidden item widgets stay hidden until something un-hides them, so switching the feature off
+    // has to release them right away rather than leave the player with slots they cannot click.
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
@@ -432,11 +427,9 @@ public class AlchProtectFeature implements Feature
         return false;
     }
 
-    /**
-     * Walks the collection log cache structures once and caches every item id.
-     * Must run on the client thread (cache reads). Roughly a few hundred struct
-     * reads plus a few hundred enum reads on login, then never again.
-     */
+    // Walks the collection log cache structures once and caches every item id. Must run on the
+    // client thread (cache reads). Roughly a few hundred struct reads plus a few hundred enum reads
+    // on login, then never again.
     private void buildCollectionLogSet()
     {
         if (collectionLogItemIds != null)

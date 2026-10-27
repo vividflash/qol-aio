@@ -41,11 +41,9 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.util.Text;
 
-/**
- * Blocks Pickpocket when current HP is at or below the clicked NPC's maximum
- * failed-pickpocket (stun) damage plus a configurable margin, and the Pyramid
- * Plunder urn/speartrap/sarcophagus interactions that could kill you at low HP.
- */
+// Blocks Pickpocket when current HP is at or below the clicked NPC's maximum failed-pickpocket
+// (stun) damage plus a configurable margin, and the Pyramid Plunder urn/speartrap/sarcophagus
+// interactions that could kill you at low HP.
 @Slf4j
 @Singleton
 public class PickpocketGuardFeature implements Feature
@@ -54,15 +52,12 @@ public class PickpocketGuardFeature implements Feature
     private static final int MAX_DAMAGE_URN = 4;
     private static final int MAX_DAMAGE_SPEARTRAP = 4;
 
-    /**
-     * Maximum damage a failed pickpocket (stun) can deal, keyed by the NPC's
-     * menu-target name. Values are the max of the range given in the OSRS wiki
-     * pickpocketing tables (https://oldschool.runescape.wiki/w/Pickpocketing,
-     * https://oldschool.runescape.wiki/w/Thieving). Names are the in-game menu
-     * target names the guard matches against, lower-cased for case-insensitive
-     * lookup. Where several NPCs share the same stun damage they are listed
-     * separately so exact menu names all resolve.
-     */
+    // Maximum damage a failed pickpocket (stun) can deal, keyed by the NPC's menu-target name.
+    // Values are the max of the range given in the OSRS wiki pickpocketing tables
+    // (https://oldschool.runescape.wiki/w/Pickpocketing,
+    // https://oldschool.runescape.wiki/w/Thieving). Names are the in-game menu target names the
+    // guard matches against, lower-cased for case-insensitive lookup. Where several NPCs share the
+    // same stun damage they are listed separately so exact menu names all resolve.
     private static final Map<String, Integer> STUN_DAMAGE = new HashMap<>();
 
     static
@@ -99,11 +94,9 @@ public class PickpocketGuardFeature implements Feature
         STUN_DAMAGE.put("elf", 5);
     }
 
-    /**
-     * Fallback stun damage for any pickpocketable NPC not in {@link #STUN_DAMAGE}
-     * (e.g. a new NPC or an unmapped name variant): assume the worst case
-     * in the table so a misclick can't kill you at low HP.
-     */
+    // Fallback stun damage for any pickpocketable NPC not in STUN_DAMAGE (e.g. a new NPC or an
+    // unmapped name variant): assume the worst case in the table so a misclick can't kill you at
+    // low HP.
     private static final int MAX_STUN_DAMAGE = Collections.max(STUN_DAMAGE.values());
 
     @Inject
@@ -181,12 +174,9 @@ public class PickpocketGuardFeature implements Feature
         }
     }
 
-    /**
-     * Max failed-pickpocket damage for the clicked NPC, keyed by its lower-cased
-     * name with the combat level already stripped. Falls back to the highest
-     * damage in the table for unknown NPCs (fail-safe: over-block rather than
-     * let a misclick kill the player at low HP).
-     */
+    // Max failed-pickpocket damage for the clicked NPC, keyed by its lower-cased name with the
+    // combat level already stripped. Falls back to the highest damage in the table for unknown NPCs
+    // (fail-safe: over-block rather than let a misclick kill the player at low HP).
     private int stunDamageFor(String npcName)
     {
         return STUN_DAMAGE.getOrDefault(npcName, MAX_STUN_DAMAGE);

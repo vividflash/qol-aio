@@ -40,24 +40,19 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 
-/**
- * Blocks known spam game messages (e.g. "not enough inventory space",
- * "spellbook reordering enabled/disabled") via the "chatFilterCheck" script
- * callback, which fires right before a message is displayed; writing 0 to
- * intStack[intStackSize - 3] vetoes it entirely.
- *
- * The callback covers every chat line, player chat included, so the message
- * type on the stack is checked first and only the game's own message types are
- * ever matched against the phrase list.
- *
- * Matches on configurable substrings (case-insensitive) rather than exact
- * text.
- */
+// Blocks known spam game messages (e.g. "not enough inventory space", "spellbook reordering
+// enabled/disabled") via the "chatFilterCheck" script callback, which fires right before a message
+// is displayed; writing 0 to intStack[intStackSize - 3] vetoes it entirely.
+//
+// The callback covers every chat line, player chat included, so the message type on the stack is
+// checked first and only the game's own message types are ever matched against the phrase list.
+//
+// Matches on configurable substrings (case-insensitive) rather than exact text.
 @Slf4j
 @Singleton
 public class ChatSpamFilterFeature implements Feature
 {
-    /** Message types the game itself produces. Player chat is not among them. */
+    // Message types the game itself produces. Player chat is not among them.
     private static final Set<ChatMessageType> GAME_MESSAGE_TYPES = EnumSet.of(
         ChatMessageType.GAMEMESSAGE,
         ChatMessageType.ENGINE,
@@ -77,7 +72,7 @@ public class ChatSpamFilterFeature implements Feature
     private QolConfig config;
 
     private boolean enabled;
-    /** Lower-cased, trimmed, non-empty phrases; parsed on start and on change. */
+    // Lower-cased, trimmed, non-empty phrases; parsed on start and on change.
     private String[] phrases = new String[0];
 
     @Override

@@ -52,25 +52,19 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.util.Text;
 
-/**
- * Sailing: removes the "Attack" option on sea bounty monsters that none of
- * the five port-task slots currently targets, so a misclick can't start a
- * fight whose kill counts for nothing.
- * <p>
- * Everything here is scoped to being aboard: a sailing boat is a
- * {@link net.runelite.api.WorldEntity} with its own non-top-level
- * {@link WorldView}, so a player standing on one reads as outside the
- * top-level view. Ashore, the DB table is never read and no menu is ever
- * touched.
- * <p>
- * The game's PortTask DB table (cached on the first boarding after startup;
- * it is game cache data and does not change) maps each task row
- * to its bounty-target NPC ids; the five task-slot varbits hold the active row
- * ids (0 = empty slot). Only NPC ids that appear as a bounty target somewhere
- * in the table are ever filtered, which self-scopes the guard to sea bounty
- * monsters, so Attack is untouched everywhere else. Fail-open: no cached
- * table, an unknown row id, or an empty target set means nothing is filtered.
- */
+// Sailing: removes the "Attack" option on sea bounty monsters that none of the five port-task slots
+// currently targets, so a misclick can't start a fight whose kill counts for nothing.
+//
+// Everything here is scoped to being aboard: a sailing boat is a net.runelite.api.WorldEntity with
+// its own non-top-level WorldView, so a player standing on one reads as outside the top-level view.
+// Ashore, the DB table is never read and no menu is ever touched.
+//
+// The game's PortTask DB table (cached on the first boarding after startup; it is game cache data
+// and does not change) maps each task row to its bounty-target NPC ids; the five task-slot varbits
+// hold the active row ids (0 = empty slot). Only NPC ids that appear as a bounty target somewhere
+// in the table are ever filtered, which self-scopes the guard to sea bounty monsters, so Attack is
+// untouched everywhere else. Fail-open: no cached table, an unknown row id, or an empty target set
+// means nothing is filtered.
 @Slf4j
 @Singleton
 public class PortTaskAttackFilterFeature implements Feature
@@ -220,10 +214,8 @@ public class PortTaskAttackFilterFeature implements Feature
         }
     }
 
-    /**
-     * True while the player is standing on a boat. Fails closed: no local
-     * player or no world view means the guard stays inactive.
-     */
+    // True while the player is standing on a boat. Fails closed: no local player or no world view
+    // means the guard stays inactive.
     private boolean onBoat()
     {
         Player local = client.getLocalPlayer();
@@ -272,7 +264,7 @@ public class PortTaskAttackFilterFeature implements Feature
         log.debug("[porttask] table cached: {} tasks with targets, {} target npc ids", targetsByTaskId.size(), allTargetNpcIds.size());
     }
 
-    /** First integer in a column, or null when the column is missing or not an int. */
+    // First integer in a column, or null when the column is missing or not an int.
     private Integer firstIntValue(int row, int column)
     {
         Object[] values = client.getDBTableField(row, column, 0);
@@ -342,7 +334,7 @@ public class PortTaskAttackFilterFeature implements Feature
         return allTargetNpcIds.contains(npcId) && !activeTargetNpcIds.contains(npcId);
     }
 
-    /** Options rarely carry tags, so skip the copy when there are none. */
+    // Options rarely carry tags, so skip the copy when there are none.
     private static String untagged(String option)
     {
         return option.indexOf('<') >= 0 ? Text.removeTags(option) : option;
