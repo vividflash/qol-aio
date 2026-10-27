@@ -57,7 +57,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 
 @PluginDescriptor(
     name = "VividFlash QoL AIO",
-    description = "QoL and misclick guards in one plugin",
+    description = "QoL and Misclick Guards in One Plugin",
     tags = {"qol", "misclick", "quality of life", "guard", "bank"}
 )
 public class QolPlugin extends Plugin

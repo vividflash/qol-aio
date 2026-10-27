@@ -202,7 +202,9 @@ public class RequireToolFeature implements Feature
     private Set<String> lastAxeOverrides;
     private boolean lastAxeVerdict;
 
-    // Fishing option to the tools that satisfy it, per the wiki's equipment table.
+    // Fishing option to the tools that satisfy it, per the wiki's equipment table. Built once:
+    // onPostMenuSort runs on every menu rebuild, so rebuilding the map and its eight sets there
+    // would allocate on the same path the item caches above avoid.
     private static final Map<String, Set<Integer>> FISHING_TOOLS = buildFishingTools();
 
     private static Map<String, Set<Integer>> buildFishingTools()

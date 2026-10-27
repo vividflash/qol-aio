@@ -279,10 +279,22 @@ public class RepotFlashFeature implements Feature
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
-        if (QolConfig.GROUP.equals(event.getGroup()))
+        if (!QolConfig.GROUP.equals(event.getGroup()) || !event.getKey().startsWith("repotFlash"))
         {
-            loadConfig();
+            return;
         }
+
+        loadConfig();
+        // Recompute on the client thread so a toggle, threshold or poison mode change shows at
+        // once instead of on the next tick.
+        clientThread.invoke(() ->
+        {
+            if (trackedPoisonMode != poisonMode)
+            {
+                resyncPoisonMode();
+            }
+            updateFlash();
+        });
     }
 
     @Subscribe

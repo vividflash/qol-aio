@@ -150,8 +150,7 @@ public class GiantsFoundryTempFeature implements Feature
     {
         overworkGuard = config.foundryOverworkGuard();
         eventBus.register(this);
-        bonusWindowOpen = false;
-        bonusExpired = false;
+        resetOverworkTracking();
         hudLoaded = true;
         if (log.isDebugEnabled())
         {
@@ -164,6 +163,11 @@ public class GiantsFoundryTempFeature implements Feature
     public void shutDown()
     {
         eventBus.unregister(this);
+        resetOverworkTracking();
+    }
+
+    private void resetOverworkTracking()
+    {
         bonusWindowOpen = false;
         bonusExpired = false;
     }
@@ -194,8 +198,7 @@ public class GiantsFoundryTempFeature implements Feature
             // Leaving the Foundry ends the cycle: a latch kept until the next tick
             // would swallow the next matching click outside the Foundry.
             hudLoaded = false;
-            bonusWindowOpen = false;
-            bonusExpired = false;
+            resetOverworkTracking();
         }
     }
 
@@ -208,8 +211,7 @@ public class GiantsFoundryTempFeature implements Feature
         {
             // Away from the station interface there is no cycle to track, and
             // a latch left set here would follow the player around the game.
-            bonusWindowOpen = false;
-            bonusExpired = false;
+            resetOverworkTracking();
             return;
         }
 
