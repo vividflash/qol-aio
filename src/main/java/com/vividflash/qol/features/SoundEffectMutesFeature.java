@@ -53,7 +53,7 @@ import net.runelite.client.events.ConfigChanged;
 //
 // Safety exemption: when "never mute others in the Wilderness" is on (default), a sound sourced
 // from another player is never consumed while the local player is in the Wilderness
-// (VarbitID.INSIDE_WILDERNESS) or on a PvP/Deadman world (WorldType#isPvpWorld), since another
+// (VarbitID.INSIDE_WILDERNESS) or on a PvP/Deadman world (WorldType.isPvpWorld), since another
 // player's noise there is a PKer warning. This overrides both the category toggles and "mute others
 // only". NPC-sourced, self-sourced, and sourceless sounds are not danger cues and keep normal
 // behavior. Sound events arrive on the client thread, so the varbit is read directly per event.
